@@ -35,11 +35,10 @@ def rounded_gradient(path, c1, c2, w, h, r):
     g.putalpha(m); g.resize((w, h), Image.LANCZOS).save(path)
 
 dotted(f"{out}/bg-dots.png")
-gradient(f"{out}/bg-dark.png", "073B39", "032F2E", diag=False)
-gradient(f"{out}/bg-teal.png", "36A9AE", "018A9C", diag=False)
-rounded_gradient(f"{out}/card-green.png", "048F1D", "01523B", 800, 400, 60)
-rounded_gradient(f"{out}/panel-green.png", "0B7847", "075E3B", 1600, 1000, 70)
-rounded_gradient(f"{out}/panel-teal.png", "36A9AE", "018A9C", 1100, 1000, 90)
+gradient(f"{out}/bg-dark.png", "006A46", "005A3C", diag=False)
+rounded_gradient(f"{out}/card-green.png", "0A7A54", "004D33", 800, 400, 60)
+rounded_gradient(f"{out}/panel-green.png", "0A7A54", "004D33", 1600, 1000, 70)
+rounded_gradient(f"{out}/panel-teal.png", "1C8A64", "006A46", 1100, 1000, 90)
 if cover_src:
     im = Image.open(cover_src).convert("RGB"); w, h = im.size; sx, sy = w / 1008, h / 2000
     c = im.crop((int(46 * sx), int(86 * sy), int(962 * sx), int(1215 * sy))).convert("RGBA")

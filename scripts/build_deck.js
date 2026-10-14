@@ -132,7 +132,8 @@ function hero(s, x, y, w, h, o) {
   const big = Math.min(o.big || 52, Math.max(18, Math.floor((h - 0.62 - (hasD0 ? 0.45 : 0) - (hasN0 ? 0.35 : 0)) * 58)));
   if (o.light) {
     s.addShape(pres.ShapeType.roundRect, { x, y, w, h, rectRadius: 0.22, fill: { color: "FFFFFF" }, line: { color: "E3E9E6", width: 0.75 }, shadow: shadow() });
-    s.addShape(pres.ShapeType.round2SameRect, { x, y, w, h: 0.85, rectRadius: 0.22, fill: { color: col }, line: { type: "none" } });
+    s.addShape(pres.ShapeType.roundRect, { x, y, w, h: 0.85, rectRadius: 0.22, fill: { color: col }, line: { type: "none" } });
+    s.addShape(pres.ShapeType.rect, { x, y: y + 0.5, w, h: 0.35, fill: { color: col }, line: { type: "none" } });
     T(s, o.label, { x: x + 0.25, y: y + 0.08, w: w - 0.5, h: 0.45, fontSize: 18, bold: true, color: K.wh });
     if (o.sub) T(s, o.sub, { x: x + 0.25, y: y + 0.5, w: w - 0.5, h: 0.28, fontSize: 10.5, color: "E8F2EE" });
     T(s, [{ text: o.value, options: { fontSize: big, bold: true, color: K.tx } }, { text: o.unit ? "  " + o.unit : "", options: { fontSize: 14, color: K.tx } }], { x: x + 0.25, y: y + 1.0, w: w - 0.5, h: 0.95, fontSize: big });
@@ -195,12 +196,13 @@ function heat(s, header, body, o) {
 const V = (v, t) => ({ v, t: t === undefined ? fm(v) : t });
 
 // line chart: series [{name, values(riyals|null), dash}]
+const DASHES = []; // per chart (in creation order): dash flags per series, applied after writing (pptxgenjs takes one dash style for all series)
 function lineChart(s, cats, series, o) {
+  DASHES.push(series.map((se) => !!se.dash));
   let last = series[0].values.length; while (last > 1 && series[0].values[last - 1] === null) last--;
   cats = cats.slice(0, last);
   s.addChart(pres.charts.LINE, series.map((se) => ({ name: se.name, labels: cats, values: se.values.slice(0, last).map((v) => M(v)) })), {
     x: o.x, y: o.y, w: o.w, h: o.h, chartColors: (o.colors || LC).slice(0, series.length), lineSize: 3, lineSmooth: true, valAxisMinVal: 0, lineDataSymbol: "circle", lineDataSymbolSize: 7,
-    lineDash: series.map((se, i) => (se.dash ? "dash" : "solid")),
     showLegend: series.length > 1, legendPos: "t", legendFontSize: 11, legendColor: HEX.grey, legendFontFace: "+mn-lt",
     catAxisLabelFontSize: 10, catAxisLabelColor: HEX.grey, catAxisLabelFontFace: "+mn-lt", catAxisOrientation: "maxMin",
     valAxisHidden: !!o.hideVal, valAxisLabelFontSize: 10, valAxisLabelColor: HEX.grey, valAxisLabelFontFace: "+mn-lt", valAxisLabelFormatCode: "#,##0",
@@ -235,8 +237,8 @@ function divider(key, group, name, photo, items) {
 
 // ================================================================= cover
 add("cover", () => {
-  const s = pres.addSlide({ masterName: "BLANK" });
   pres.addSection({ title: "الغلاف" });
+  const s = pres.addSlide({ masterName: "BLANK", sectionTitle: "الغلاف" });
   s.addImage({ path: A("cover.png"), x: 0.4, y: 0.4, w: 12.53, h: 7.93 });
   T(s, "الإيرادات حسب", { x: 4.9, y: 5.35, w: 7.6, h: 0.8, fontSize: 38, bold: true, color: K.wh });
   T(s, "السنة والتبويب", { x: 4.9, y: 6.1, w: 7.6, h: 0.8, fontSize: 38, bold: true, color: K.wh });
@@ -555,8 +557,8 @@ add("notes", () => {
   notes.forEach((t, i) => { s.addShape(pres.ShapeType.ellipse, { x: 12.65, y: 2.5 + i * 0.85 + 0.17, w: 0.12, h: 0.12, fill: { color: HEX.slate }, line: { type: "none" } }); T(s, t, { x: 0.6, y: 2.5 + i * 0.85, w: 11.85, h: 0.75, fontSize: 14, color: HEX.grey, valign: "top" }); });
 });
 add("end", () => {
-  const s = pres.addSlide({ masterName: "BLANK" });
   pres.addSection({ title: "الختام" });
+  const s = pres.addSlide({ masterName: "BLANK", sectionTitle: "الختام" });
   s.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: W, h: H, fill: { color: HEX.g }, line: { type: "none" } });
   s.addShape(pres.ShapeType.roundRect, { x: 5.6, y: 3.0, w: 2.13, h: 2.3, rectRadius: 0.3, fill: { color: "FFFFFF" }, line: { type: "none" } });
   s.addImage({ path: A("logo-amana.png"), x: 5.77, y: 3.15, w: 1.8, h: 1.95 });
@@ -564,5 +566,17 @@ add("end", () => {
 });
 
 // ================================================================= build
+async function patchDashes(file) {
+  const JSZip = require("jszip"), fs = require("fs");
+  const zip = await JSZip.loadAsync(fs.readFileSync(file));
+  for (let i = 0; i < DASHES.length; i++) {
+    const name = "ppt/charts/chart" + (i + 1) + ".xml";
+    if (!DASHES[i].some(Boolean) || !zip.file(name)) continue;
+    let xml = await zip.file(name).async("string"), k = 0;
+    xml = xml.replace(/<c:ser>[\s\S]*?<\/c:ser>/g, (ser) => (DASHES[i][k++] ? ser.replace(/(<a:ln w="38100"[^>]*>[\s\S]*?)<a:prstDash val="[^"]*"\/>/, '$1<a:prstDash val="dash"/>') : ser));
+    zip.file(name, xml);
+  }
+  fs.writeFileSync(file, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
+}
 plan.forEach((p, i) => { cur = i + 1; p.fn(); });
-pres.writeFile({ fileName: OUT }).then(() => applyTheme(OUT, THEME)).then(() => console.log("wrote", OUT, plan.length, "slides"));
+pres.writeFile({ fileName: OUT }).then(() => patchDashes(OUT)).then(() => applyTheme(OUT, THEME)).then(() => console.log("wrote", OUT, plan.length, "slides"));

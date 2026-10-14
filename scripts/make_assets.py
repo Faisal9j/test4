@@ -5,6 +5,11 @@ out = sys.argv[1] if len(sys.argv) > 1 else "assets"
 cover_src = sys.argv[2] if len(sys.argv) > 2 else None
 os.makedirs(out, exist_ok=True)
 
+def slim(img, path, width):
+    """downscale + palette-quantize an RGBA photo so the deck (which embeds it per slide) stays small"""
+    img = img.resize((width, int(img.height * width / img.width)), Image.LANCZOS)
+    img.quantize(256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.FLOYDSTEINBERG).save(path, optimize=True)
+
 def hexc(h): return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
 def dotted(path, w=1920, h=1080, step=28):
@@ -46,7 +51,7 @@ if cover_src:
     for box in [(0, 0, 2 * r, 2 * r), (W - 2 * r, H - 2 * r, W, H), (0, H - 2 * r, 2 * r, H)]:
         pass
     m = Image.new("L", (W * 2, H * 2), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, W * 2 - 1, H * 2 - 1), r * 2, fill=255)
-    c.putalpha(m.resize((W, H), Image.LANCZOS)); c.save(f"{out}/cover-photo.png")
+    c.putalpha(m.resize((W, H), Image.LANCZOS)); slim(c, f"{out}/cover-photo.png", 1200)
 
 
 # ---- portrait assets + notched photo frames (photos cropped from the Ministry report pages)
@@ -69,7 +74,7 @@ def notch_frame(img, path, w=1340, h=520, r=60, nw=640, nh=200):
     s = 2; m = Image.new("L", (w * s, h * s), 0); d = ImageDraw.Draw(m)
     d.rounded_rectangle((0, 0, w * s - 1, h * s - 1), r * s, fill=255)
     d.rounded_rectangle((w * s - nw * s, -r * s, w * s + r * s, nh * s), r * s, fill=0)   # notch top-right
-    img.putalpha(m.resize((w, h), Image.LANCZOS)); img.save(path)
+    img.putalpha(m.resize((w, h), Image.LANCZOS)); slim(img, path, 1000)
 
 if len(sys.argv) > 3:
     base = sys.argv[3]

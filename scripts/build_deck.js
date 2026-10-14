@@ -14,16 +14,17 @@ const D = require(path.join(ROOT, "data", "data.json"));
 // ---------------------------------------------------------------- theme
 const THEME = {
   name: "Ministry of Tourism Revenue",
-  headFontFace: "Arial",
-  bodyFontFace: "Arial",
+  headFontFace: "Vazirmatn",
+  bodyFontFace: "Vazirmatn",
   colors: {
-    dk1: "0B2B24", lt1: "FFFFFF", dk2: "0F4A3A", lt2: "EEF4F1",
-    accent1: "1E9E4A", accent2: "0E7C66", accent3: "6C5CE7", accent4: "F2B134",
-    accent5: "E5547B", accent6: "5B6B7B", hlink: "0E7C66", folHlink: "5B6B7B",
+    dk1: "032F2E", lt1: "FFFFFF", dk2: "4F5B73", lt2: "F1F6F3",
+    accent1: "048F1D", accent2: "077948", accent3: "8CDB4F", accent4: "018A9C",
+    accent5: "F0648C", accent6: "5B6B7B", hlink: "077948", folHlink: "5B6B7B",
   },
 };
-const HEX = { dk: "0B2B24", dg: "0F4A3A", g: "1E9E4A", lt: "EEF4F1", sl: "5B6B7B", grid: "DCE6E1" };
-const SERIES = ["0F4A3A", "1E9E4A", "8FD14F", "6C5CE7", "F2B134", "0E7C66"];
+const HEX = { dk: "032F2E", dg: "01523B", g: "048F1D", lt: "F1F6F3", sl: "5B6B7B", grid: "DCE6E1", slate: "4F5B73", card: "0A3E36", edge: "2F8F4F", tab: "D2E8DF" };
+const SERIES = ["01523B", "048F1D", "8CDB4F", "018A9C", "A0AAB8", "F0648C"];
+const A = (f) => path.join(ROOT, "assets", f);
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE"; // 13.33 x 7.5
@@ -32,7 +33,7 @@ pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFac
 pres.title = "تقرير الإيرادات 2026";
 pres.author = "وزارة السياحة";
 const C = pres.SchemeColor;
-const K = { dk: C.text1, dg: C.text2, wh: C.background1, lt: C.background2, g: C.accent1, teal: C.accent2, pur: C.accent3, gold: C.accent4, pink: C.accent5, sl: C.accent6 };
+const K = { dk: C.text1, dg: C.text2, wh: C.background1, lt: C.background2, g: C.accent1, pan: C.accent2, lime: C.accent3, teal: C.accent4, pink: C.accent5, sl: C.accent6 };
 
 // ---------------------------------------------------------------- data helpers
 const rows = (k) => D[k].slice(1).filter((r) => r.some((c) => c !== null));
@@ -52,30 +53,23 @@ const ids = {};
 const add = (id, fn) => { ids[id] = plan.length + 1; plan.push({ id, fn }); };
 const num = (id) => ids[id];
 const seenSections = new Set();
+let cur = 0;
 
-pres.defineSlideMaster({
-  title: "LIGHT", background: { color: "FFFFFF" },
-  objects: [
-    { image: { x: 0.5, y: 0.28, w: 1.95, h: 0.75, path: LOGO } },
-    { text: { text: "تقرير الإيرادات 2026  |  المبالغ بالمليون ريال، والأرقام مقرّبة وقد لا تتطابق المجاميع", options: { x: 3.2, y: 7.02, w: 9.63, h: 0.3, fontSize: 10, color: HEX.sl, align: "right", rtlMode: true, margin: 0 } } },
-  ],
-  slideNumber: { x: 0.5, y: 7.02, w: 0.6, h: 0.3, fontSize: 10, color: HEX.sl, align: "left" },
-});
-pres.defineSlideMaster({
-  title: "DARK", background: { color: "0B2B24" },
-  objects: [
-    { rect: { x: 0.5, y: 0.28, w: 1.95, h: 0.75, fill: { color: "FFFFFF" }, rectRadius: 0.12 } },
-    { image: { x: 0.5, y: 0.28, w: 1.95, h: 0.75, path: LOGO } },
-    { text: { text: "تقرير الإيرادات 2026  |  المبالغ بالمليون ريال، والأرقام مقرّبة وقد لا تتطابق المجاميع", options: { x: 3.2, y: 7.02, w: 9.63, h: 0.3, fontSize: 10, color: "9FB8AE", align: "right", rtlMode: true, margin: 0 } } },
-  ],
-  slideNumber: { x: 0.5, y: 7.02, w: 0.6, h: 0.3, fontSize: 10, color: "9FB8AE", align: "left" },
-});
+const FOOT = "تقرير الإيرادات 2026  |  المبالغ بالمليون ريال، والأرقام مقرّبة وقد لا تتطابق المجاميع";
+const footer = (c) => ({ text: { text: FOOT, options: { x: 3.2, y: 7.02, w: 9.63, h: 0.3, fontSize: 10, color: c, align: "right", rtlMode: true, margin: 0 } } });
+pres.defineSlideMaster({ title: "LIGHT", background: { path: A("bg-dots.png") },
+  objects: [{ image: { x: 0.5, y: 0.25, w: 1.95, h: 0.75, path: LOGO } }, footer(HEX.sl)],
+  slideNumber: { x: 0.5, y: 7.02, w: 0.6, h: 0.3, fontSize: 10, color: HEX.sl, align: "left" } });
+pres.defineSlideMaster({ title: "DARK", background: { path: A("bg-dark.png") },
+  objects: [{ rect: { x: 0.5, y: 0.25, w: 1.95, h: 0.75, fill: { color: "FFFFFF" }, rectRadius: 0.12 } }, { image: { x: 0.5, y: 0.25, w: 1.95, h: 0.75, path: LOGO } }, footer("9FB8AE")],
+  slideNumber: { x: 0.5, y: 7.02, w: 0.6, h: 0.3, fontSize: 10, color: "9FB8AE", align: "left" } });
+pres.defineSlideMaster({ title: "BLANK", background: { path: A("bg-dots.png") }, objects: [] });
 
 // ---------------------------------------------------------------- building blocks
 const T = (s, text, o) => s.addText(text, Object.assign({ isTextBox: true, rtlMode: true, align: "right", margin: 0, valign: "middle", fontSize: 14, color: K.dg }, o));
 
 function chips(s, labels, active, targets, y, right, dark, minW) {
-  const gap = 0.12, avail = minW ? 3.6 : 12.33;
+  const gap = 0.1, avail = minW ? 3.6 : 12.33;
   let ws = labels.map((lb) => Math.max(minW || 0.95, lb.length * 0.092 + 0.5));
   const f = Math.min(1, avail / (ws.reduce((a, b) => a + b, 0) + gap * (ws.length - 1)));
   ws = ws.map((w) => w * f);
@@ -85,12 +79,32 @@ function chips(s, labels, active, targets, y, right, dark, minW) {
     const w = ws[i];
     x -= w;
     const on = i === active;
-    T(s, lb, { x, y, w, h: 0.4, shape: pres.ShapeType.roundRect, rectRadius: 0.2, align: "center", fontSize: fs, bold: on,
-      color: on ? K.wh : dark ? K.wh : K.dg, fill: { color: on ? K.g : dark ? K.dg : K.lt } });
+    const o = { x, y, w, h: 0.4, shape: pres.ShapeType.roundRect, rectRadius: 0.12, align: "center", fontSize: fs, bold: on };
+    if (on) Object.assign(o, dark ? { color: K.wh, fill: { color: HEX.g } } : { color: K.dk, fill: { color: HEX.tab }, line: { color: HEX.edge, width: 0.75 } });
+    else Object.assign(o, { color: dark ? "CFE3DA" : K.sl });
+    T(s, lb, o);
     if (targets && targets[i] && !on) {
-      s.addShape(pres.ShapeType.roundRect, { x, y, w, h: 0.4, rectRadius: 0.2, fill: { color: "FFFFFF", transparency: 100 }, line: { type: "none" }, hyperlink: { slide: num(targets[i]), tooltip: lb } });
+      s.addShape(pres.ShapeType.roundRect, { x, y, w, h: 0.4, rectRadius: 0.12, fill: { color: "FFFFFF", transparency: 100 }, line: { type: "none" }, hyperlink: { slide: num(targets[i]), tooltip: lb } });
     }
     x -= gap;
+  });
+}
+
+// navigation buttons (index / previous / next) like the report header
+function navButtons(s, dark) {
+  const bs = 0.5, defs = [["الفهرس", "index"], ["السابق", cur - 1], ["التالي", cur + 1]];
+  defs.forEach(([lb, tg], i) => {
+    const x = 12.33 - i * 0.78, y = 0.2;
+    const line = dark ? "9FB8AE" : "5B6B7B";
+    s.addShape(pres.ShapeType.roundRect, { x, y, w: bs, h: bs, rectRadius: 0.1, fill: { color: "FFFFFF", transparency: 100 }, line: { color: line, width: 1 } });
+    if (i === 0) {
+      [[0, 0, "6C5CE7"], [1, 0, "048F1D"], [0, 1, "048F1D"], [1, 1, "8FB4F0"]].forEach(([a, b, c]) => s.addShape(pres.ShapeType.roundRect, { x: x + 0.09 + a * 0.17, y: y + 0.09 + b * 0.17, w: 0.14, h: 0.14, rectRadius: 0.03, fill: { color: "FFFFFF", transparency: 100 }, line: { color: c, width: 1.5 } }));
+    } else {
+      T(s, i === 1 ? "↑" : "↓", { x, y, w: bs, h: bs, align: "center", fontSize: 18, bold: true, color: dark ? K.wh : K.dk });
+    }
+    T(s, lb, { x: x - 0.1, y: y + 0.52, w: bs + 0.2, h: 0.22, align: "center", fontSize: 9, bold: true, color: dark ? "CFE3DA" : K.dk });
+    const t = typeof tg === "string" ? num(tg) : tg;
+    if (t >= 1 && t <= plan.length) s.addShape(pres.ShapeType.roundRect, { x, y, w: bs, h: bs, rectRadius: 0.1, fill: { color: "FFFFFF", transparency: 100 }, line: { type: "none" }, hyperlink: { slide: t, tooltip: lb } });
   });
 }
 
@@ -99,39 +113,53 @@ function frame(o) {
   if (!seenSections.has(o.section)) { seenSections.add(o.section); pres.addSection({ title: o.section }); }
   const s = pres.addSlide({ masterName: o.dark ? "DARK" : "LIGHT", sectionTitle: o.section });
   const txt = o.dark ? K.wh : K.dg;
-  T(s, o.section, { x: 6.3, y: 0.42, w: 6.53, h: 0.4, fontSize: 13, color: o.dark ? "9FB8AE" : K.sl });
+  navButtons(s, o.dark);
+  T(s, o.section, { x: 6.4, y: 0.3, w: 3.9, h: 0.4, fontSize: 13, bold: true, color: o.dark ? "9FB8AE" : K.sl });
   if (o.years) chips(s, o.years.map(String), o.yearIdx, o.yearIds, 0.42, 6.1, o.dark, 0.8);
   if (o.tabs) chips(s, o.tabs, o.tabIdx, o.tabIds, 1.05, 12.83, o.dark);
-  T(s, o.title, { x: 0.5, y: 1.58, w: 12.33, h: 0.62, fontSize: 28, bold: true, color: txt });
+  if (o.title) T(s, o.title, { x: 0.5, y: 1.55, w: 12.33, h: 0.65, fontSize: 30, bold: true, color: txt });
   if (o.sub) T(s, o.sub, { x: 0.5, y: 2.2, w: 12.33, h: 0.32, fontSize: 14, color: o.dark ? "9FB8AE" : K.sl });
   return s;
 }
 
 const dTxt = (v) => (v === null ? "—" : (v >= 0 ? "▲ +" : "▼ ") + Math.abs(v).toFixed(1) + "%");
 
-// card with label, big value, unit and up to two deltas
+// card with label, big value, unit and up to two deltas; o.hero = gradient green card, o.icon = key in ICONS, o.more = slide id
 function card(s, x, y, w, h, o) {
-  const dark = o.dark;
-  s.addShape(pres.ShapeType.roundRect, { x, y, w, h, rectRadius: 0.14, fill: { color: dark ? K.dg : K.lt }, line: dark ? { color: K.g, width: 0.75 } : { type: "none" } });
+  const dark = o.dark, hero = o.hero, onDark = dark || hero;
+  if (hero) s.addImage({ path: A("card-green.png"), x, y, w, h });
+  else s.addShape(pres.ShapeType.roundRect, { x, y, w, h, rectRadius: 0.14, fill: { color: dark ? HEX.card : HEX.lt }, line: dark ? { color: HEX.edge, width: 0.75 } : { type: "none" } });
   const big = o.big || 28;
   const hasD = o.deltas && o.deltas.length;
-  T(s, o.label, { x: x + 0.15, y: y + 0.08, w: w - 0.3, h: 0.34, fontSize: 13, color: dark ? "CFE3DA" : K.sl });
-  T(s, [{ text: o.value, options: { fontSize: big, bold: true, color: dark ? K.wh : K.dg } }, { text: o.unit ? "  " + o.unit : "", options: { fontSize: 12, color: dark ? "CFE3DA" : K.sl } }],
-    { x: x + 0.15, y: y + 0.42, w: w - 0.3, h: hasD ? h - 0.95 : h - 0.55, fontSize: big });
+  const sub = onDark ? "CFE3DA" : K.sl;
+  const iconW = o.icon && ICONS[o.icon] ? 0.75 : 0;
+  if (iconW) {
+    s.addShape(pres.ShapeType.roundRect, { x: x + 0.15, y: y + 0.15, w: 0.6, h: 0.6, rectRadius: 0.1, fill: { color: "FFFFFF", transparency: 100 }, line: { color: HEX.edge, width: 1 } });
+    s.addImage({ data: ICONS[o.icon], x: x + 0.27, y: y + 0.27, w: 0.36, h: 0.36 });
+  }
+  const moreW = o.more ? 1.15 : 0;
+  T(s, o.label, { x: x + 0.15 + iconW, y: y + 0.08, w: w - 0.3 - iconW - (hasD ? moreW : 0), h: 0.34, fontSize: 13, color: sub });
+  T(s, [{ text: o.value, options: { fontSize: big, bold: true, color: onDark ? K.wh : K.dg } }, { text: o.unit ? "  " + o.unit : "", options: { fontSize: 12, color: sub } }],
+    { x: x + 0.15 + iconW, y: y + 0.42, w: w - 0.3 - iconW, h: hasD ? h - 0.95 : h - 0.55, fontSize: big });
+  if (o.more) {
+    const my = hasD ? y + 0.1 : y + h - 0.42;
+    T(s, "للتفاصيل", { x: x + 0.15, y: my, w: moreW, h: 0.3, fontSize: 11, underline: { style: "sng" }, color: onDark ? "8CDB4F" : K.pan, align: "left", rtlMode: true });
+    s.addShape(pres.ShapeType.rect, { x: x + 0.15, y: my, w: moreW, h: 0.3, fill: { color: "FFFFFF", transparency: 100 }, line: { type: "none" }, hyperlink: { slide: num(o.more), tooltip: "للتفاصيل" } });
+  }
   if (hasD) {
-    const dw = (w - 0.3) / o.deltas.length;
+    const area = w - 0.3, dw = area / o.deltas.length;
     o.deltas.forEach((d, i) => {
       const up = d.v !== null && d.v >= 0;
-      const col = d.v === null ? (dark ? "CFE3DA" : K.sl) : up ? (dark ? "8FE0A8" : K.g) : K.pink;
-      T(s, [{ text: dTxt(d.v), options: { bold: true, color: col, fontSize: 13 } }, { text: "  " + d.label, options: { color: dark ? "CFE3DA" : K.sl, fontSize: 11 } }],
-        { x: x + 0.15 + dw * (o.deltas.length - 1 - i), y: y + h - 0.5, w: dw, h: 0.36, fontSize: 12 });
+      const col = d.v === null ? sub : up ? (onDark ? "8CDB4F" : K.g) : onDark ? "F7A1BC" : K.pink;
+      T(s, [{ text: dTxt(d.v), options: { bold: true, color: col, fontSize: 13 } }, { text: "  " + d.label, options: { color: sub, fontSize: 11 } }],
+        { x: x + w - 0.15 - dw * (i + 1), y: y + h - 0.5, w: dw, h: 0.36, fontSize: 12 });
     });
   }
 }
 
 function cardRow(s, y, h, items, dark, big) {
   const gap = 0.2, w = (12.33 - gap * (items.length - 1)) / items.length;
-  items.forEach((it, i) => card(s, 12.83 - w * (i + 1) - gap * i, y, w, h, Object.assign({ dark, big }, it)));
+  items.forEach((it, i) => card(s, 12.83 - w * (i + 1) - gap * i, y, w, h, Object.assign({ dark, big, hero: !dark && i === 0 }, it)));
 }
 
 function chartOpts(o) {
@@ -163,29 +191,81 @@ function table(s, header, body, o) {
   const fs = o.fontSize || 12;
   const mk = (r, hdr, i, tot) => rev(r).map((c, j) => ({ text: String(c), options: {
     rtlMode: true, align: j === r.length - 1 ? "right" : "center", valign: "middle", fontSize: fs, bold: hdr || tot,
-    color: hdr ? K.wh : K.dg, fill: { color: hdr ? K.dg : tot ? K.lt : K.wh }, border: [bd, bd, bd, bd], margin: [0.02, 0.08, 0.02, 0.08] } }));
+    color: hdr ? K.wh : K.dg, fill: { color: hdr ? K.pan : tot ? K.lt : K.wh }, border: [bd, bd, bd, bd], margin: [0.02, 0.08, 0.02, 0.08] } }));
   const all = [mk(header, true)].concat(body.map((r, i) => mk(r, false, i, o.lastTotal && i === body.length - 1)));
   s.addTable(all, { x: o.x, y: o.y, w: o.w, colW: rev(o.colW), rowH: o.rowH || 0.32 });
 }
 
+// ---------------------------------------------------------------- icons (react-icons -> png data URIs)
+const ICONS = {};
+async function loadIcons() {
+  try {
+    const React = require("react"), { renderToStaticMarkup } = require("react-dom/server"), sharp = require("sharp"), fa = require("react-icons/fa");
+    const map = { money: "FaMoneyBillWave", invoice: "FaFileInvoiceDollar", history: "FaHistory", chart: "FaChartLine", balance: "FaBalanceScale", hand: "FaHandHoldingUsd", percent: "FaPercentage", target: "FaBullseye" };
+    for (const [k, n] of Object.entries(map)) {
+      const svg = renderToStaticMarkup(React.createElement(fa[n], { color: "#8CDB4F", size: 256 }));
+      ICONS[k] = "image/png;base64," + (await sharp(Buffer.from(svg)).resize(256, 256).png().toBuffer()).toString("base64");
+    }
+  } catch (e) { console.warn("icons skipped:", e.message); }
+}
+
+// section divider in the report's style: green panel, notched title, dotted list of sub-pages
+let secNo = 1;
+function divider(key, name, items) {
+  const no = ++secNo;
+  add("dv-" + key, () => {
+    const s = frame({ section: name, title: "" });
+    s.addImage({ path: A("panel-green.png"), x: 0.5, y: 1.3, w: 12.33, h: 5.55 });
+    s.addShape(pres.ShapeType.roundRect, { x: 6.5, y: 1.0, w: 6.8, h: 1.85, rectRadius: 0.4, fill: { color: "FFFFFF" }, line: { type: "none" } });
+    T(s, name, { x: 6.8, y: 1.45, w: 5.7, h: 1.2, fontSize: name.length > 22 ? 26 : 36, bold: true, color: K.dg });
+    T(s, String(no).padStart(2, "0"), { x: 0.9, y: 4.5, w: 3.5, h: 2.2, fontSize: 110, bold: true, color: K.lime, align: "left", rtlMode: false });
+    const y0 = 3.15, st = 0.5;
+    s.addShape(pres.ShapeType.line, { x: 12.25, y: y0 + 0.25, w: 0, h: st * (items.length - 1), line: { color: "FFFFFF", width: 1.25 } });
+    items.forEach(([lb, id], i) => {
+      const y = y0 + i * st;
+      s.addShape(pres.ShapeType.ellipse, { x: 12.18, y: y + 0.18, w: 0.14, h: 0.14, fill: { color: "FFFFFF" }, line: { type: "none" } });
+      T(s, lb, { x: 5.2, y, w: 6.7, h: 0.5, fontSize: 18, color: K.wh });
+      s.addShape(pres.ShapeType.rect, { x: 5.2, y, w: 7.2, h: 0.5, fill: { color: "FFFFFF", transparency: 100 }, line: { type: "none" }, hyperlink: { slide: num(id), tooltip: lb } });
+    });
+  });
+}
+
+const LC = ["048F1D", "A0AAB8", "01523B", "018A9C", "F0648C"];
+function lineChart(s, title, cats, series, o) {
+  T(s, title, { x: o.x, y: o.y - 0.38, w: o.w, h: 0.34, fontSize: 15, bold: true, color: K.dg });
+  // keep only the months that have data for the first series (empty points are not written safely)
+  let last = series[0].values.length; while (last > 1 && series[0].values[last - 1] === null) last--;
+  cats = cats.slice(0, last);
+  const data = series.map((se) => ({ name: se.name, labels: cats, values: se.values.slice(0, last).map((v) => M(v)) }));
+  s.addChart(pres.charts.LINE, data, {
+    x: o.x, y: o.y, w: o.w, h: o.h, chartColors: (o.colors || LC).slice(0, series.length), lineSize: 3, lineSmooth: true, valAxisMinVal: 0, lineDataSymbol: "circle", lineDataSymbolSize: 7,
+    showLegend: series.length > 1, legendPos: "b", legendFontSize: 11, legendColor: HEX.sl, legendFontFace: "+mn-lt",
+    catAxisLabelFontSize: 11, catAxisLabelColor: HEX.sl, catAxisLabelFontFace: "+mn-lt", catAxisOrientation: "maxMin",
+    valAxisLabelFontSize: 10, valAxisLabelColor: HEX.sl, valAxisLabelFontFace: "+mn-lt", valAxisLabelFormatCode: "#,##0",
+    valGridLine: { color: HEX.grid, size: 0.5 }, catGridLine: { style: "none" }, showValue: !!o.labels, dataLabelFontSize: 10, dataLabelColor: HEX.dk,
+    dataLabelFontFace: "+mn-lt", dataLabelPosition: "t", dataLabelFormatCode: "#,##0.0", showTitle: false,
+  });
+}
+
 // ================================================================= 1) cover
 add("cover", () => {
-  const s = pres.addSlide({ masterName: "DARK" });
+  const s = pres.addSlide({ masterName: "BLANK" });
   pres.addSection({ title: "الغلاف" });
-  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.5, w: 12.33, h: 5.0, rectRadius: 0.3, fill: { color: K.dg }, line: { color: K.g, width: 1 } });
-  T(s, "تقرير الإيرادات", { x: 1, y: 2.0, w: 11.3, h: 1.1, fontSize: 54, bold: true, color: K.wh });
-  T(s, "الإيرادات حسب السنة والتبويب", { x: 1, y: 3.2, w: 11.3, h: 0.7, fontSize: 28, color: K.wh });
-  T(s, "المؤشرات السنوية والشهرية  •  الأداء الفعلي مقابل المقدر والمستهدف  •  التحصيل والمديونية", { x: 1, y: 4.0, w: 11.3, h: 0.5, fontSize: 16, color: "CFE3DA" });
-  chips(s, [String(YEAR), "التقرير الشهري: أغسطس"], 0, null, 5.4, 12.3, true);
-  T(s, "وزارة السياحة", { x: 1, y: 5.9, w: 5, h: 0.4, fontSize: 14, color: "CFE3DA", align: "left", rtlMode: false });
+  s.addImage({ path: A("panel-teal.png"), x: 6.2, y: 0.4, w: 6.63, h: 6.7 });
+  s.addImage({ path: A("cover-photo.png"), x: 0.5, y: 0.4, w: 5.44, h: 6.7 });
+  T(s, "الإيرادات", { x: 6.6, y: 1.5, w: 5.8, h: 1.1, fontSize: 60, bold: true, color: K.wh });
+  T(s, "حسب السنة والتبويب", { x: 6.6, y: 2.65, w: 5.8, h: 0.8, fontSize: 32, bold: true, color: K.wh });
+  T(s, "التقرير السنوي والشهري للإيراد  " + YEAR + "م", { x: 6.6, y: 3.6, w: 5.8, h: 0.5, fontSize: 18, color: "E6F4F5" });
+  T(s, "الفعلي مقابل المقدر والمستهدف  •  المفوتر والمحصل  •  المديونية", { x: 6.6, y: 4.2, w: 5.8, h: 0.8, fontSize: 14, color: "E6F4F5", valign: "top" });
+  T(s, "المصدر: وزارة السياحة", { x: 6.6, y: 6.2, w: 5.8, h: 0.4, fontSize: 13, color: "E6F4F5" });
 });
 
 // ================================================================= 2) index
 const SECTIONS = [
-  ["المؤشرات الرئيسة", "kpi"], ["الإيراد حتى تاريخه", "td-all"], ["الإيراد لنهاية السنة", "ye-all"], ["الإيراد للشهر الحالي", "mo-all"],
-  ["الإيراد حسب القطاع", "sec-all"], ["ملخص التبويبات: الاستثمارية والجزاءات والتبغ", "sum-0"], ["الاستقطاع", "cut-2026"],
-  ["سيناريوهات الإقفال", "scn-0"], ["الجزاءات والغرامات الشهرية", "pen-2026"], ["التنفيذ والاسترداد", "enf-0"],
-  ["المفوتر والميزانية والمستهدف", "inv-0"], ["تبويبات الوزارة: المفوتر والمستهدف", "min-all"], ["المديونية", "debt-all"], ["ملاحظات منهجية", "notes"],
+  ["المؤشرات الرئيسة", "kpi"], ["الإيراد حتى تاريخه", "dv-td"], ["الإيراد لنهاية السنة", "dv-ye"], ["الإيراد للشهر الحالي", "dv-mo"],
+  ["الإيراد حسب القطاع", "dv-sec"], ["ملخص التبويبات: الاستثمارية والجزاءات والتبغ", "dv-sum"], ["الاستقطاع", "dv-cut"],
+  ["سيناريوهات الإقفال", "dv-scn"], ["الجزاءات والغرامات الشهرية", "dv-pen"], ["التنفيذ والاسترداد", "dv-enf"],
+  ["المفوتر والميزانية والمستهدف", "dv-inv"], ["تبويبات الوزارة: المفوتر والمستهدف", "dv-min"], ["المديونية", "dv-debt"], ["ملاحظات منهجية", "notes"],
 ];
 add("index", () => {
   const s = frame({ section: "الفهرس", title: "الفهرس" });
@@ -194,7 +274,7 @@ add("index", () => {
     const r = Math.floor(i / cols), c = i % cols;
     const x = 12.83 - w * (c + 1) - gap * c, y = 2.4 + r * (h + 0.18);
     s.addShape(pres.ShapeType.roundRect, { x, y, w, h, rectRadius: 0.14, fill: { color: K.lt }, line: { type: "none" } });
-    T(s, String(i + 1), { x: x + w - 0.62, y: y + 0.27, w: 0.5, h: 0.5, shape: pres.ShapeType.rect, fill: { color: K.g }, color: K.wh, bold: true, fontSize: 18, align: "center" });
+    T(s, String(i + 1), { x: x + w - 0.62, y: y + 0.27, w: 0.5, h: 0.5, shape: pres.ShapeType.rect, fill: { color: K.lime }, color: K.dk, bold: true, fontSize: 18, align: "center" });
     T(s, name, { x: x + 0.12, y: y + 0.1, w: w - 0.9, h: h - 0.2, fontSize: 13, bold: true, color: K.dg });
     s.addShape(pres.ShapeType.roundRect, { x, y, w, h, rectRadius: 0.14, fill: { color: "FFFFFF", transparency: 100 }, line: { type: "none" }, hyperlink: { slide: num(id), tooltip: name } });
   });
@@ -207,17 +287,17 @@ add("kpi", () => {
   const debt = rows("المديونية"), enf = rows("التنفيذ_والاسترداد"), cut = rows("استقطاع").filter((r) => r[6] === YEAR);
   const s = frame({ section: "المؤشرات الرئيسة", title: "أبرز مؤشرات الإيراد للعام " + YEAR, sub: "إجمالي منطقة الرياض (مدينة الرياض + بلديات المنطقة) حتى تاريخه", dark: true });
   cardRow(s, 2.7, 1.9, [
-    { label: "إجمالي الفعلي حتى تاريخه", value: fm(T0("act")), unit: "مليون ريال", deltas: [{ v: delta(T0("act"), T0("est")), label: "عن المقدر" }, { v: delta(T0("act"), T0("tgt")), label: "عن المستهدف" }] },
-    { label: "إجمالي المفوتر", value: fm(T0("inv")), unit: "مليون ريال", deltas: [{ v: delta(T0("act"), T0("ly")), label: "الفعلي عن السنة الماضية" }] },
-    { label: "محصل سنوات سابقة", value: fm(T0("prior")), unit: "مليون ريال" },
-    { label: "محصل السنة الماضية", value: fm(T0("ly")), unit: "مليون ريال" },
-  ], true);
+    { icon: "money", more: "td-all", label: "الفعلي حتى تاريخه", value: fm(T0("act")), unit: "مليون ريال", deltas: [{ v: delta(T0("act"), T0("est")), label: "عن المقدر" }, { v: delta(T0("act"), T0("tgt")), label: "عن المستهدف" }] },
+    { icon: "invoice", more: "inv-0", label: "المفوتر", value: fm(T0("inv")), unit: "مليون ريال", deltas: [{ v: delta(T0("act"), T0("ly")), label: "الفعلي عن السنة الماضية" }] },
+    { icon: "history", more: "td-all", label: "محصل سنوات سابقة", value: fm(T0("prior")), unit: "مليون ريال" },
+    { icon: "chart", more: "td-all", label: "محصل السنة الماضية", value: fm(T0("ly")), unit: "مليون ريال" },
+  ], true, 24);
   cardRow(s, 4.85, 1.9, [
-    { label: "المديونية المتبقية", value: fm(sum(debt, (r) => r[3])), unit: "مليون ريال" },
-    { label: "استرداد فعلي (التنفيذ)", value: fm(sum(enf, (r) => r[5])), unit: "مليون ريال" },
-    { label: "الاستقطاع " + YEAR, value: fm(sum(cut, (r) => r[4])), unit: "مليون ريال", deltas: [{ v: (sum(cut, (r) => r[4]) / Math.max(1, sum(cut, (r) => r[3]))) * 100, label: "من الإيراد" }] },
-    { label: "المستهدف حتى تاريخه", value: fm(T0("tgt")), unit: "مليون ريال", deltas: [{ v: delta(T0("est"), T0("tgt")), label: "المقدر عن المستهدف" }] },
-  ], true);
+    { icon: "balance", more: "debt-all", label: "المديونية المتبقية", value: fm(sum(debt, (r) => r[3])), unit: "مليون ريال" },
+    { icon: "hand", more: "enf-0", label: "استرداد فعلي (التنفيذ)", value: fm(sum(enf, (r) => r[5])), unit: "مليون ريال" },
+    { icon: "percent", more: "cut-2026", label: "الاستقطاع " + YEAR, value: fm(sum(cut, (r) => r[4])), unit: "مليون ريال", deltas: [{ v: (sum(cut, (r) => r[4]) / Math.max(1, sum(cut, (r) => r[3]))) * 100, label: "من الإيراد" }] },
+    { icon: "target", more: "td-all", label: "المستهدف حتى تاريخه", value: fm(T0("tgt")), unit: "مليون ريال", deltas: [{ v: delta(T0("est"), T0("tgt")), label: "المقدر عن المستهدف" }] },
+  ], true, 24);
 });
 
 // ================================================================= 4-6) revenue sections (overview + one slide per tab)
@@ -230,6 +310,7 @@ function revSection(o) {
   const get = (adm, tab) => R.find((r) => r.adm === adm && r.tab === tab) || {};
   const tot = (adm, k) => sum(TABS, (t) => get(adm, t)[k]);
 
+  divider(o.id, o.name, [["نظرة عامة", tabIds[0]]].concat(TABS.map((t, i) => [t, tabIds[i + 1]])));
   add(o.id + "-all", () => {
     const s = frame({ section: o.name, title: o.name + " — نظرة عامة", sub: o.sub + " — منطقة الرياض", tabs: tabNames, tabIdx: 0, tabIds, years: [o.year], yearIdx: 0 });
     cardRow(s, 2.65, 1.45, meas.map((m, i) => {
@@ -245,7 +326,7 @@ function revSection(o) {
     const s = frame({ section: o.name, title: tab, sub: o.name + " — " + o.sub, tabs: tabNames, tabIdx: ti + 1, tabIds, years: [o.year], yearIdx: 0 });
     ADM.forEach((adm, ai) => {
       const r = get(adm, tab);
-      card(s, 9.63, 2.65 + ai * 1.45, 3.2, 1.3, { label: adm, value: fm(r.act), unit: "م.ر", big: 24,
+      card(s, 9.63, 2.65 + ai * 1.45, 3.2, 1.3, { hero: ai === 0, label: adm, value: fm(r.act), unit: "م.ر", big: 24,
         deltas: [{ v: delta(n(r.act), n(r.est)), label: "المقدر" }, { v: delta(n(r.act), n(r.tgt)), label: "المستهدف" }] });
     });
     chart(s, "الفعلي مقابل المقدر والمستهدف حسب التنظيم الإداري (مليون ريال)", ADM, meas.map((m) => ({ name: m.n, values: ADM.map((a) => get(a, tab)[m.k]) })), { x: 0.5, y: 3.0, w: 8.8, h: 3.9, fmt: "#,##0.0", colors: SERIES.slice(o.inv ? 0 : 1) });
@@ -264,6 +345,7 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
   const tabs = ["نظرة عامة"].concat(TABS.slice(0, 4));
   const tids = ["sec-all"].concat([0, 1, 2, 3].map((i) => "sec-" + i));
   const secs = [...new Set(R.map((r) => r.sec))];
+  divider("sec", "الإيراد حسب القطاع", [["نظرة عامة", "sec-all"]].concat(TABS.slice(0, 4).map((t, i) => [t, "sec-" + i])));
   add("sec-all", () => {
     const s = frame({ section: "الإيراد حسب القطاع", title: "الإيراد حسب القطاع — نظرة عامة", sub: "إجمالي المحصل لكل قطاع موزعاً على التبويبات", tabs, tabIdx: 0, tabIds: tids, years: [YEAR], yearIdx: 0 });
     chart(s, "إجمالي المحصل حسب القطاع والتبويب (مليون ريال)", secs, TABS.slice(0, 4).map((t) => ({ name: t, values: secs.map((c) => sum(R.filter((r) => r.sec === c && r.tab === t), (r) => r.col)) })),
@@ -273,7 +355,7 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
     const s = frame({ section: "الإيراد حسب القطاع", title: tab, sub: "الفواتير والفعلي والمحصل حسب القطاع", tabs, tabIdx: ti + 1, tabIds: tids, years: [YEAR], yearIdx: 0 });
     const f = (c, k) => sum(R.filter((r) => r.sec === c && r.tab === tab), (r) => r[k]);
     chart(s, "إجمالي الفواتير والفعلي والمحصل (مليون ريال)", secs, [{ name: "إجمالي الفواتير", values: secs.map((c) => f(c, "inv")) }, { name: "فعلي", values: secs.map((c) => f(c, "act")) }, { name: "محصل سنوات سابقة", values: secs.map((c) => f(c, "prior")) }, { name: "إجمالي المحصل", values: secs.map((c) => f(c, "col")) }],
-      { x: 0.5, y: 3.0, w: 12.33, h: 3.9, horiz: true, fmt: "#,##0", gap: 35, colors: ["0F4A3A", "1E9E4A", "8FD14F", "6C5CE7"] });
+      { x: 0.5, y: 3.0, w: 12.33, h: 3.9, horiz: true, labels: false, gap: 35, colors: ["01523B", "048F1D", "8CDB4F", "018A9C"] });
   }));
 }
 
@@ -288,14 +370,15 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
     { name: "التبغ والإيواء", rr: L("التبغ") },
   ].map((o) => (o.rr ? Object.assign(o, { inv: sum(o.rr, (r) => r.inv), act: sum(o.rr, (r) => r.act), prior: sum(o.rr, (r) => r.prior), est: sum(o.rr, (r) => r.est), tgt: sum(o.rr, (r) => r.tgt), ly: sum(o.rr, (r) => r.ly) }) : o));
   const names = sums.map((x) => x.name), tids = sums.map((_, i) => "sum-" + i);
+  divider("sum", "ملخص التبويبات", sums.map((x, i) => [x.name, "sum-" + i]));
   sums.forEach((x, i) => add("sum-" + i, () => {
     const s = frame({ section: "ملخص التبويبات", title: x.name, sub: "ملخص التبويب حتى تاريخه — " + YEAR, tabs: names, tabIdx: i, tabIds: tids, years: [YEAR], yearIdx: 0 });
-    card(s, 9.63, 2.65, 3.2, 1.45, { label: "الفعلي", value: fm(x.act), unit: "م.ر", deltas: [{ v: delta(x.act, x.est), label: "المقدر" }, { v: delta(x.act, x.tgt), label: "المستهدف" }] });
+    card(s, 9.63, 2.65, 3.2, 1.45, { hero: true, label: "الفعلي", value: fm(x.act), unit: "م.ر", deltas: [{ v: delta(x.act, x.est), label: "المقدر" }, { v: delta(x.act, x.tgt), label: "المستهدف" }] });
     card(s, 9.63, 4.3, 3.2, 1.3, { label: x.inv === null ? "محصل السنة الحالية" : "المفوتر", value: fm(x.inv === null ? x.cur : x.inv), unit: "م.ر", big: 24 });
     card(s, 9.63, 5.75, 3.2, 1.15, { label: "الفعلي عن السنة الماضية", value: dTxt(delta(x.act, x.ly)), big: 22 });
     const cats = (x.inv === null ? ["محصل السنة الحالية"] : ["مفوتر"]).concat(["فعلي", "محصل سنوات سابقة", "مقدر", "مستهدف", "محصل السنة الماضية"]);
     const vals = [x.inv === null ? x.cur : x.inv, x.act, x.prior, x.est, x.tgt, x.ly];
-    chart(s, "مؤشرات التبويب (مليون ريال)", cats, [{ name: x.name, values: vals }], { x: 0.5, y: 3.0, w: 8.8, h: 3.9, colors: ["1E9E4A"], fmt: "#,##0.0" });
+    chart(s, "مؤشرات التبويب (مليون ريال)", cats, [{ name: x.name, values: vals }], { x: 0.5, y: 3.0, w: 8.8, h: 3.9, colors: ["048F1D"], fmt: "#,##0.0" });
   }));
 }
 
@@ -305,6 +388,7 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
   const AM = rows("الاستقطاع_الامانات_الاخرى");
   const years = [...new Set(R.map((r) => r.year))].sort();
   const yids = years.map((y) => "cut-" + y);
+  divider("cut", "الاستقطاع", years.map((y) => ["سنة " + y, "cut-" + y]));
   years.forEach((y, yi) => add("cut-" + y, () => {
     const s = frame({ section: "الاستقطاع", title: "الاستقطاع من الإيراد — " + y, sub: "حسب التنظيم الإداري والتبويب", years, yearIdx: yi, yearIds: yids });
     const am = AM.find((r) => r[0] === y);
@@ -314,12 +398,12 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
       cats.push(a + " — " + t); rv.push(sum(f, (r) => r.rev)); ct.push(sum(f, (r) => r.cut));
     }));
     if (am) {
-      card(s, 9.63, 2.65, 3.2, 1.0, { label: "إيرادات كافة الأمانات", value: fm(am[1]), unit: "م.ر", big: 22 });
+      card(s, 9.63, 2.65, 3.2, 1.0, { hero: true, label: "إيرادات كافة الأمانات", value: fm(am[1]), unit: "م.ر", big: 22 });
       card(s, 9.63, 3.8, 3.2, 1.0, { label: "الإيرادات الفعلية للأمانة", value: fm(am[2]), unit: "م.ر", big: 22 });
       card(s, 9.63, 4.95, 3.2, 1.0, { label: "الاستقطاع لكافة الأمانات", value: fm(am[3]), unit: "م.ر", big: 22 });
       card(s, 9.63, 6.1, 3.2, 0.85, { label: "استقطاع الأمانة", value: fm(am[4]), unit: "م.ر", big: 20 });
     }
-    chart(s, "الإيراد والمستقطع (مليون ريال)", cats, [{ name: "الإيراد", values: rv }, { name: "المستقطع", values: ct }], { x: 0.5, y: 3.0, w: 8.8, h: 3.9, horiz: true, colors: ["0F4A3A", "1E9E4A"], gap: 45 });
+    chart(s, "الإيراد والمستقطع (مليون ريال)", cats, [{ name: "الإيراد", values: rv }, { name: "المستقطع", values: ct }], { x: 0.5, y: 3.0, w: 8.8, h: 3.9, horiz: true, colors: ["01523B", "048F1D"], gap: 45 });
   }));
 }
 
@@ -328,14 +412,15 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
   const mon = ["سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
   const names = ["السيناريو الأول", "السيناريو الثاني"], tids = ["scn-0", "scn-1"];
   const keys = ["السناريو_الاول_للاقفال", "السناريو_الثاني_للاقفال"];
+  divider("scn", "سيناريوهات الإقفال", names.map((nm, i) => [nm, "scn-" + i]));
   keys.forEach((k, i) => add("scn-" + i, () => {
     const R = rows(k).map((r) => ({ y: r[0], m: r[1], tab: r[2], col: r[3], tgt: r[4] }));
     const s = frame({ section: "سيناريوهات الإقفال", title: names[i] + " للإقفال", sub: "المحصل المتوقع مقابل المستهدف للأشهر المتبقية من " + R[0].y, tabs: names, tabIdx: i, tabIds: tids, years: [R[0].y], yearIdx: 0 });
     const tc = sum(R, (r) => r.col), tt = sum(R, (r) => r.tgt);
-    card(s, 9.63, 2.65, 3.2, 1.05, { label: "المحصل المتوقع", value: fm(tc), unit: "م.ر", big: 24 });
+    card(s, 9.63, 2.65, 3.2, 1.05, { hero: true, label: "المحصل المتوقع", value: fm(tc), unit: "م.ر", big: 24 });
     card(s, 9.63, 3.85, 3.2, 1.05, { label: "المستهدف", value: fm(tt), unit: "م.ر", big: 24 });
     card(s, 9.63, 5.05, 3.2, 1.0, { label: "المحصل مقابل المستهدف", value: dTxt(delta(tc, tt)), big: 22 });
-    chart(s, "المحصل والمستهدف الشهري (مليون ريال)", mon, [{ name: "محصل", values: mon.map((m) => sum(R.filter((r) => r.m === m), (r) => r.col)) }, { name: "مستهدف", values: mon.map((m) => sum(R.filter((r) => r.m === m), (r) => r.tgt)) }], { x: 0.5, y: 3.0, w: 8.8, h: 2.1, colors: ["1E9E4A", "0F4A3A"], fmt: "#,##0" });
+    chart(s, "المحصل والمستهدف الشهري (مليون ريال)", mon, [{ name: "محصل", values: mon.map((m) => sum(R.filter((r) => r.m === m), (r) => r.col)) }, { name: "مستهدف", values: mon.map((m) => sum(R.filter((r) => r.m === m), (r) => r.tgt)) }], { x: 0.5, y: 3.0, w: 8.8, h: 2.1, colors: ["048F1D", "01523B"], fmt: "#,##0" });
     const tabs6 = TABS.concat(["نقل الملكية"]);
     table(s, ["التبويب", "محصل", "مستهدف", "المحصل عن المستهدف"], tabs6.map((t) => { const f = R.filter((r) => r.tab === t); return [t, fm(sum(f, (r) => r.col)), fm(sum(f, (r) => r.tgt)), dTxt(delta(sum(f, (r) => r.col), sum(f, (r) => r.tgt)))]; }),
       { x: 0.5, y: 5.2, w: 8.8, colW: [2.6, 2.0, 2.0, 2.2], rowH: 0.245, fontSize: 10 });
@@ -346,14 +431,15 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
 {
   const R = rows("الجزائات والغرامات").map((r) => ({ y: r[0], m: r[1], inv: r[2], past: r[3], same: r[4] }));
   const years = [...new Set(R.map((r) => r.y))].sort(), yids = years.map((y) => "pen-" + y);
+  divider("pen", "الجزاءات والغرامات الشهرية", years.map((y) => ["سنة " + y, "pen-" + y]));
   years.forEach((y, yi) => add("pen-" + y, () => {
     const s = frame({ section: "الجزاءات والغرامات الشهرية", title: "الجزاءات والغرامات — " + y, sub: "المفوتر والمحصل شهرياً", years, yearIdx: yi, yearIds: yids });
     const f = R.filter((r) => r.y === y).sort((a, b) => a.m - b.m);
-    card(s, 9.63, 2.65, 3.2, 1.3, { label: "إجمالي مفوتر السنة", value: fm(sum(f, (r) => r.inv)), unit: "م.ر", big: 24 });
+    card(s, 9.63, 2.65, 3.2, 1.3, { hero: true, label: "إجمالي مفوتر السنة", value: fm(sum(f, (r) => r.inv)), unit: "م.ر", big: 24 });
     card(s, 9.63, 4.1, 3.2, 1.3, { label: "محصل عن الفترة الماضية", value: fm(sum(f, (r) => r.past)), unit: "م.ر", big: 24 });
     card(s, 9.63, 5.55, 3.2, 1.3, { label: "محصل عن ذات الشهر", value: fm(sum(f, (r) => r.same)), unit: "م.ر", big: 24 });
-    chart(s, "الجزاءات والغرامات الشهرية (مليون ريال)", f.map((r) => MONTHS[r.m - 1]), [{ name: "مفوتر الشهر", values: f.map((r) => r.inv) }, { name: "محصل عن الفترة الماضية", values: f.map((r) => r.past) }, { name: "محصل عن ذات الشهر", values: f.map((r) => r.same) }],
-      { x: 0.5, y: 3.0, w: 8.8, h: 3.9, labels: false, colors: ["0F4A3A", "8FD14F", "1E9E4A"], gap: 40 });
+    lineChart(s, "الجزاءات والغرامات الشهرية (مليون ريال)", f.map((r) => MONTHS[r.m - 1]), [{ name: "مفوتر الشهر", values: f.map((r) => r.inv) }, { name: "محصل عن الفترة الماضية", values: f.map((r) => r.past) }, { name: "محصل عن ذات الشهر", values: f.map((r) => r.same) }],
+      { x: 0.5, y: 3.0, w: 8.8, h: 3.9, labels: false, colors: ["01523B", "8CDB4F", "048F1D"], gap: 40 });
   }));
 }
 
@@ -361,13 +447,14 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
 {
   const R = rows("التنفيذ_والاسترداد").map((r) => ({ adm: r[0], tab: (r[1] || "").replace("الإيرادات الاستثمارية", "إيرادات إستثمارية").replace("جزاءات والغرامات", "جزاءات وغرامات"), inv: r[2], ex: r[3], rec: r[4], real: r[5] }));
   const names = ["الإجمالي", "مدينة الرياض", "بلديات المنطقة"], tids = ["enf-0", "enf-1", "enf-2"];
+  divider("enf", "التنفيذ والاسترداد", names.map((nm, i) => [nm, "enf-" + i]));
   names.forEach((nm, i) => add("enf-" + i, () => {
     const s = frame({ section: "التنفيذ والاسترداد", title: "التنفيذ والاسترداد — " + nm, sub: "حسب التبويب — " + YEAR, tabs: names, tabIdx: i, tabIds: tids, years: [YEAR], yearIdx: 0 });
     const F = R.filter((r) => i === 0 || r.adm === nm);
     cardRow(s, 2.65, 1.2, [{ label: "قيمة الفواتير", value: fm(sum(F, (r) => r.inv)), unit: "م.ر", big: 24 }, { label: "المنفذ", value: fm(sum(F, (r) => r.ex)), unit: "م.ر", big: 24 }, { label: "إجمالي الاسترداد", value: fm(sum(F, (r) => r.rec)), unit: "م.ر", big: 24 }, { label: "استرداد فعلي", value: fm(sum(F, (r) => r.real)), unit: "م.ر", big: 24 }]);
     const by = (t, k) => sum(F.filter((r) => r.tab === t), (r) => r[k]);
     chart(s, "قيمة الفواتير والمنفذ والاسترداد حسب التبويب (مليون ريال)", TABS, [{ name: "قيمة الفواتير", values: TABS.map((t) => by(t, "inv")) }, { name: "المنفذ", values: TABS.map((t) => by(t, "ex")) }, { name: "إجمالي استرداد", values: TABS.map((t) => by(t, "rec")) }, { name: "استرداد فعلي", values: TABS.map((t) => by(t, "real")) }],
-      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, fmt: "#,##0.0", colors: ["0F4A3A", "1E9E4A", "8FD14F", "6C5CE7"] });
+      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, fmt: "#,##0.0", colors: ["01523B", "048F1D", "8CDB4F", "018A9C"] });
   }));
 }
 
@@ -376,17 +463,18 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
   const mn = (a, k) => MONTHS.map((_, i) => { const r = a.find((x) => x[1] === i + 1); return r ? r[k] : null; });
   const inv = rows("المفوتر"), orig = rows("الميزانية الاعتماد الأصلي").filter((r) => r[1]), post = rows("الميزانية بعد  الاعتماد").filter((r) => r[1]), tg = rows("مستهدف المفوتر");
   const names = ["المفوتر والمحصل", "الميزانية والمستهدف"], tids = ["inv-0", "inv-1"];
+  divider("inv", "المفوتر والميزانية والمستهدف", names.map((nm, i) => [nm, "inv-" + i]));
   add("inv-0", () => {
-    const s = frame({ section: "المفوتر والميزانية والمستهدف", title: "المفوتر والمحصل الشهري", sub: "الفترة: يناير – أغسطس " + YEAR, tabs: names, tabIdx: 0, tabIds: tids, years: [YEAR], yearIdx: 0 });
+    const s = frame({ section: "المفوتر والميزانية والمستهدف", title: "المفوتر والمحصل الشهري", sub: "الفترة: يناير – " + MONTHS[Math.max(...inv.map((r) => r[1])) - 1] + " " + YEAR, tabs: names, tabIdx: 0, tabIds: tids, years: [YEAR], yearIdx: 0 });
     cardRow(s, 2.65, 1.2, [{ label: "إجمالي المفوتر", value: fm(sum(inv, (r) => r[2])), unit: "م.ر", big: 24 }, { label: "صافي المفوتر", value: fm(sum(inv, (r) => r[3])), unit: "م.ر", big: 24 }, { label: "محصل السنة الحالية", value: fm(sum(inv, (r) => r[4])), unit: "م.ر", big: 24 }, { label: "محصل السنوات السابقة", value: fm(sum(inv, (r) => r[5])), unit: "م.ر", big: 24 }]);
-    chart(s, "المفوتر والمحصل مقابل مستهدف المفوتر (مليون ريال)", MONTHS, [{ name: "مفوتر", values: mn(inv, 2) }, { name: "صافي المفوتر", values: mn(inv, 3) }, { name: "محصل السنة الحالية", values: mn(inv, 4) }, { name: "محصل السنوات السابقة", values: mn(inv, 5) }, { name: "مستهدف المفوتر", values: mn(tg, 2) }],
-      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, labels: false, colors: ["0F4A3A", "1E9E4A", "8FD14F", "6C5CE7", "F2B134"], gap: 30 });
+    lineChart(s, "المفوتر والمحصل مقابل مستهدف المفوتر (مليون ريال)", MONTHS, [{ name: "مفوتر", values: mn(inv, 2) }, { name: "صافي المفوتر", values: mn(inv, 3) }, { name: "محصل السنة الحالية", values: mn(inv, 4) }, { name: "محصل السنوات السابقة", values: mn(inv, 5) }, { name: "مستهدف المفوتر", values: mn(tg, 2) }],
+      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, labels: false, colors: ["01523B", "048F1D", "8CDB4F", "018A9C", "A0AAB8"], gap: 30 });
   });
   add("inv-1", () => {
     const s = frame({ section: "المفوتر والميزانية والمستهدف", title: "الميزانية ومستهدف المفوتر", sub: "الاعتماد الأصلي وبعد الاعتماد " + YEAR, tabs: names, tabIdx: 1, tabIds: tids, years: [YEAR], yearIdx: 0 });
     cardRow(s, 2.65, 1.2, [{ label: "الاعتماد الأصلي (سنوي)", value: fm(sum(orig, (r) => r[2])), unit: "م.ر", big: 24 }, { label: "بعد الاعتماد (سنوي)", value: fm(sum(post, (r) => r[2])), unit: "م.ر", big: 24 }, { label: "مستهدف المفوتر (سنوي)", value: fm(sum(tg, (r) => r[2])), unit: "م.ر", big: 24 }]);
-    chart(s, "الميزانية الشهرية ومستهدف المفوتر (مليون ريال)", MONTHS, [{ name: "الاعتماد الأصلي", values: mn(orig, 2) }, { name: "بعد الاعتماد", values: mn(post, 2) }, { name: "مستهدف المفوتر", values: mn(tg, 2) }],
-      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, labels: false, colors: ["0F4A3A", "1E9E4A", "F2B134"], gap: 40 });
+    lineChart(s, "الميزانية الشهرية ومستهدف المفوتر (مليون ريال)", MONTHS, [{ name: "الاعتماد الأصلي", values: mn(orig, 2) }, { name: "بعد الاعتماد", values: mn(post, 2) }, { name: "مستهدف المفوتر", values: mn(tg, 2) }],
+      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, labels: false, colors: ["01523B", "048F1D", "A0AAB8"], gap: 40 });
   });
 }
 
@@ -399,20 +487,22 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
   const A = rows("مفوتر تبويبات الوزارة").map((r) => ({ m: r[1], t: r[2], v: r[4] }));
   const B = rows("مستهدف الوزارة").map((r) => ({ m: r[1], t: r[2], v: r[4] }));
   const mv = (L, t) => MONTHS.map((_, i) => { const f = L.filter((r) => r.m === i + 1 && (!t || r.t === t)); return f.length ? sum(f, (r) => r.v) : null; });
-  const upTo = (arr) => sum(arr.slice(0, 8), (v) => v);
+  const LM = Math.max(...A.map((r) => r.m)), LN = MONTHS[LM - 1];
+  const upTo = (arr) => sum(arr.slice(0, LM), (v) => v);
   const names = ["نظرة عامة"].concat(MT.map((x) => x[1])), tids = ["min-all"].concat(MT.map((_, i) => "min-" + i));
+  divider("min", "تبويبات الوزارة", names.map((nm, i) => [nm, tids[i]]));
   add("min-all", () => {
-    const s = frame({ section: "تبويبات الوزارة", title: "تبويبات الوزارة — نظرة عامة", sub: "المفوتر حتى أغسطس مقابل المستهدف", tabs: names, tabIdx: 0, tabIds: tids, years: [YEAR], yearIdx: 0 });
+    const s = frame({ section: "تبويبات الوزارة", title: "تبويبات الوزارة — نظرة عامة", sub: "المفوتر حتى " + LN + " مقابل المستهدف", tabs: names, tabIdx: 0, tabIds: tids, years: [YEAR], yearIdx: 0 });
     const ta = upTo(mv(A)), tb = upTo(mv(B));
-    cardRow(s, 2.65, 1.2, [{ label: "إجمالي المفوتر (يناير–أغسطس)", value: fm(ta), unit: "م.ر", big: 24 }, { label: "المستهدف (يناير–أغسطس)", value: fm(tb), unit: "م.ر", big: 24 }, { label: "المفوتر عن المستهدف", value: dTxt(delta(ta, tb)), big: 24 }, { label: "المستهدف السنوي", value: fm(sum(B, (r) => r.v)), unit: "م.ر", big: 24 }]);
-    chart(s, "المفوتر والمستهدف حسب التبويب (مليون ريال)", MT.map((x) => x[1]), [{ name: "مفوتر (يناير–أغسطس)", values: MT.map((x) => upTo(mv(A, x[0]))) }, { name: "مستهدف (يناير–أغسطس)", values: MT.map((x) => upTo(mv(B, x[0]))) }, { name: "مستهدف السنة", values: MT.map((x) => sum(B.filter((r) => r.t === x[0]), (r) => r.v)) }],
-      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, fmt: "#,##0", colors: ["1E9E4A", "0F4A3A", "F2B134"] });
+    cardRow(s, 2.65, 1.2, [{ label: "إجمالي المفوتر (يناير–" + LN + ")", value: fm(ta), unit: "م.ر", big: 24 }, { label: "المستهدف (يناير–" + LN + ")", value: fm(tb), unit: "م.ر", big: 24 }, { label: "المفوتر عن المستهدف", value: dTxt(delta(ta, tb)), big: 24 }, { label: "المستهدف السنوي", value: fm(sum(B, (r) => r.v)), unit: "م.ر", big: 24 }]);
+    chart(s, "المفوتر والمستهدف حسب التبويب (مليون ريال)", MT.map((x) => x[1]), [{ name: "مفوتر (يناير–" + LN + ")", values: MT.map((x) => upTo(mv(A, x[0]))) }, { name: "مستهدف (يناير–" + LN + ")", values: MT.map((x) => upTo(mv(B, x[0]))) }, { name: "مستهدف السنة", values: MT.map((x) => sum(B.filter((r) => r.t === x[0]), (r) => r.v)) }],
+      { x: 0.5, y: 4.4, w: 12.33, h: 2.55, fmt: "#,##0", colors: ["048F1D", "01523B", "A0AAB8"] });
   });
   MT.forEach((t, i) => add("min-" + i, () => {
     const s = frame({ section: "تبويبات الوزارة", title: t[0], sub: "المفوتر والمستهدف الشهري", tabs: names, tabIdx: i + 1, tabIds: tids, years: [YEAR], yearIdx: 0 });
     const a = mv(A, t[0]), b = mv(B, t[0]);
-    cardRow(s, 2.65, 1.2, [{ label: "المفوتر (يناير–أغسطس)", value: fm(upTo(a)), unit: "م.ر", big: 24 }, { label: "المستهدف (يناير–أغسطس)", value: fm(upTo(b)), unit: "م.ر", big: 24 }, { label: "المفوتر عن المستهدف", value: dTxt(delta(upTo(a), upTo(b))), big: 24 }, { label: "المستهدف السنوي", value: fm(sum(b, (v) => v)), unit: "م.ر", big: 24 }]);
-    chart(s, "المفوتر والمستهدف الشهري (مليون ريال)", MONTHS, [{ name: "مفوتر", values: a }, { name: "مستهدف", values: b }], { x: 0.5, y: 4.4, w: 12.33, h: 2.55, fmt: "#,##0.0", colors: ["1E9E4A", "0F4A3A"], gap: 45 });
+    cardRow(s, 2.65, 1.2, [{ label: "المفوتر (يناير–" + LN + ")", value: fm(upTo(a)), unit: "م.ر", big: 24 }, { label: "المستهدف (يناير–" + LN + ")", value: fm(upTo(b)), unit: "م.ر", big: 24 }, { label: "المفوتر عن المستهدف", value: dTxt(delta(upTo(a), upTo(b))), big: 24 }, { label: "المستهدف السنوي", value: fm(sum(b, (v) => v)), unit: "م.ر", big: 24 }]);
+    lineChart(s, "المفوتر والمستهدف الشهري (مليون ريال)", MONTHS, [{ name: "مفوتر", values: a }, { name: "مستهدف", values: b }], { x: 0.5, y: 4.4, w: 12.33, h: 2.55, fmt: "#,##0.0", colors: ["048F1D", "01523B"], gap: 45 });
   }));
 }
 
@@ -423,17 +513,18 @@ revSection({ id: "mo", key: "الايراد الشهر الحالي", name: "ا�
   const tids = ["debt-all"].concat([0, 1, 2, 3].map((i) => "debt-" + i));
   const cards = (s, F) => cardRow(s, 2.65, 1.2, [{ label: "رصيد المديونية الإجمالي", value: fm(sum(F, (r) => r.tot)), unit: "م.ر", big: 24 }, { label: "المتبقي حتى تاريخه", value: fm(sum(F, (r) => r.rem)), unit: "م.ر", big: 24 }, { label: "ما تم سداده السنة الحالية", value: fm(sum(F, (r) => r.paid)), unit: "م.ر", big: 24 }, { label: "الملغي من المديونية", value: fm(sum(F, (r) => r.canc)), unit: "م.ر", big: 24 }]);
   const SER = (g) => [{ name: "المتبقي", values: g.map((f) => sum(f, (r) => r.rem)) }, { name: "ما تم سداده", values: g.map((f) => sum(f, (r) => r.paid)) }, { name: "الملغي", values: g.map((f) => sum(f, (r) => r.canc)) }];
+  divider("debt", "المديونية", names.map((nm, i) => [nm, tids[i]]));
   add("debt-all", () => {
     const s = frame({ section: "المديونية", title: "المديونية — نظرة عامة", sub: "رصيد المديونية حسب التبويب", tabs: names, tabIdx: 0, tabIds: tids, years: [YEAR], yearIdx: 0 });
     cards(s, R);
     const t4 = names.slice(1);
-    chart(s, "المديونية حسب التبويب (مليون ريال)", t4, SER(t4.map((t) => R.filter((r) => r.tab === t))), { x: 0.5, y: 4.4, w: 12.33, h: 2.55, stacked: true, labels: false, fmt: "#,##0.0", colors: ["0F4A3A", "1E9E4A", "F2B134"] });
+    chart(s, "المديونية حسب التبويب (مليون ريال)", t4, SER(t4.map((t) => R.filter((r) => r.tab === t))), { x: 0.5, y: 4.4, w: 12.33, h: 2.55, stacked: true, labels: false, fmt: "#,##0.0", colors: ["01523B", "048F1D", "A0AAB8"] });
   });
   names.slice(1).forEach((t, i) => add("debt-" + i, () => {
     const s = frame({ section: "المديونية", title: t, sub: "المديونية حسب سنة النشوء", tabs: names, tabIdx: i + 1, tabIds: tids, years: [YEAR], yearIdx: 0 });
     const F = R.filter((r) => r.tab === t).sort((a, b) => a.y - b.y);
     cards(s, F);
-    chart(s, "المديونية حسب سنة النشوء (مليون ريال)", F.map((r) => String(r.y)), SER(F.map((r) => [r])), { x: 0.5, y: 4.4, w: 12.33, h: 2.55, stacked: true, labels: false, colors: ["0F4A3A", "1E9E4A", "F2B134"], gap: 35 });
+    chart(s, "المديونية حسب سنة النشوء (مليون ريال)", F.map((r) => String(r.y)), SER(F.map((r) => [r])), { x: 0.5, y: 4.4, w: 12.33, h: 2.55, stacked: true, labels: false, colors: ["01523B", "048F1D", "A0AAB8"], gap: 35 });
   }));
 }
 
@@ -459,5 +550,6 @@ add("notes", () => {
 });
 
 // ================================================================= build
-plan.forEach((p) => p.fn());
-pres.writeFile({ fileName: OUT }).then(() => applyTheme(OUT, THEME)).then(() => console.log("wrote", OUT, plan.length, "slides"));
+loadIcons()
+  .then(() => { plan.forEach((p, i) => { cur = i + 1; p.fn(); }); return pres.writeFile({ fileName: OUT }); })
+  .then(() => applyTheme(OUT, THEME)).then(() => console.log("wrote", OUT, plan.length, "slides"));

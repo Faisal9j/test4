@@ -47,3 +47,36 @@ if cover_src:
         pass
     m = Image.new("L", (W * 2, H * 2), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, W * 2 - 1, H * 2 - 1), r * 2, fill=255)
     c.putalpha(m.resize((W, H), Image.LANCZOS)); c.save(f"{out}/cover-photo.png")
+
+
+# ---- portrait assets + notched photo frames (photos cropped from the Ministry report pages)
+def dotted_p(path, w=1500, h=2980, step=28):
+    im = Image.new("RGB", (w, h), (255, 255, 255)); d = ImageDraw.Draw(im)
+    for r, y in enumerate(range(0, h + step, step)):
+        for x in range(-step, w + step, step):
+            cx = x + (step // 2 if r % 2 else 0)
+            d.ellipse((cx - 5, y - 5, cx + 5, y + 5), fill=(241, 245, 243))
+    im.save(path)
+dotted_p(f"{out}/bg-dots-p.png")
+gradient(f"{out}/bg-dark-p.png", "006A46", "005A3C", w=1500, h=2980, diag=False)
+
+def notch_frame(img, path, w=1340, h=520, r=60, nw=640, nh=200):
+    img = img.convert("RGB"); iw, ih = img.size
+    t = w / h
+    if iw / ih > t: nw_ = int(ih * t); img = img.crop(((iw - nw_) // 2, 0, (iw - nw_) // 2 + nw_, ih))
+    else: nh_ = int(iw / t); img = img.crop((0, (ih - nh_) // 2, iw, (ih - nh_) // 2 + nh_))
+    img = img.resize((w, h), Image.LANCZOS).convert("RGBA")
+    s = 2; m = Image.new("L", (w * s, h * s), 0); d = ImageDraw.Draw(m)
+    d.rounded_rectangle((0, 0, w * s - 1, h * s - 1), r * s, fill=255)
+    d.rounded_rectangle((w * s - nw * s, -r * s, w * s + r * s, nh * s), r * s, fill=0)   # notch top-right
+    img.putalpha(m.resize((w, h), Image.LANCZOS)); img.save(path)
+
+if len(sys.argv) > 3:
+    base = sys.argv[3]
+    def pg(n): return Image.open(f"{base}-{n:02d}.png").convert("RGB")
+    def box(im, x0, y0, x1, y1):
+        W, H = im.size; sx, sy = W / 1008, H / 2000
+        return im.crop((int(x0 * sx), int(y0 * sy), int(x1 * sx), int(y1 * sy)))
+    notch_frame(box(pg(2), 90, 470, 917, 815), f"{out}/ph0.png")
+    for i, n in enumerate((14, 15, 16, 17), 1):
+        notch_frame(box(pg(n), 90, 332, 510, 585), f"{out}/ph{i}.png")

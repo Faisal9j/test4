@@ -1,0 +1,31 @@
+{
+  "name": "Amana Revenue Targets",
+  "dataColors": ["#2D6A66", "#86B19A", "#8A8F8E", "#3B7F7C", "#5E9467", "#2E3F7F", "#C9D6D3", "#1E2B2A"],
+  "background": "#FFFFFF",
+  "foreground": "#1E2B2A",
+  "tableAccent": "#2D6A66",
+  "good": "#2D6A66",
+  "neutral": "#8A8F8E",
+  "bad": "#B5544B",
+  "maximum": "#2D6A66",
+  "center": "#86B19A",
+  "minimum": "#E4E9E8",
+  "textClasses": {
+    "callout": { "fontSize": 28, "fontFace": "Segoe UI Bold", "color": "#1E2B2A" },
+    "title": { "fontSize": 14, "fontFace": "Segoe UI Semibold", "color": "#2D6A66" },
+    "header": { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#1E2B2A" },
+    "label": { "fontSize": 10, "fontFace": "Segoe UI", "color": "#6B7675" }
+  },
+  "visualStyles": {
+    "*": { "*": {
+      "background": [{ "show": false, "transparency": 100 }],
+      "border": [{ "show": false }],
+      "visualHeader": [{ "show": false }],
+      "dropShadow": [{ "show": false }]
+    } },
+    "page": { "*": {
+      "background": [{ "transparency": 100 }],
+      "outspace": [{ "color": { "solid": { "color": "#F2F5F4" } } }]
+    } }
+  }
+}

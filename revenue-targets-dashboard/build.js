@@ -247,9 +247,101 @@ async function page2() {
   s.addNotes("حالة المديونيات — جميع القيم بالمليون ريال. الرسم يقارن رصيد المديونية بما تم سداده لكل تبويب في كل فترة.");
 }
 
+// ================================================================ chart pages (2x2 grid of native charts)
+const GRID = { y1: 1.15, h1: 2.9, y2: 4.25, h2: 2.97, w: (12.33 - 0.25) / 2 };
+const cellX = (col) => (col === 0 ? 12.83 - GRID.w : 0.5); // col 0 = right
+async function chartCard(s, col, row, Comp, title, name) {
+  const x = cellX(col), y = row === 0 ? GRID.y1 : GRID.y2, h = row === 0 ? GRID.h1 : GRID.h2;
+  card(s, x, y, GRID.w, h, name);
+  await heading(s, Comp, title, x + GRID.w - 0.25, y + 0.18, GRID.w - 1.0);
+  return { x: x + 0.2, y: y + 0.68, w: GRID.w - 0.4, h: h - 0.8 };
+}
+// one look for every column/bar chart: no gridlines, hidden value axis, values on the bars, categories right-to-left
+function chart(s, type, data, box, o) {
+  if (BG) return;
+  s.addChart(type, data, Object.assign({
+    x: box.x, y: box.y, w: box.w, h: box.h, barDir: "col", barGrouping: "clustered", barGapWidthPct: 70, barOverlapPct: -10,
+    showLegend: data.length > 1, legendPos: "t", legendFontSize: 11, legendColor: X.mute, legendFontFace: "+mn-lt",
+    showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 11, dataLabelFontBold: true, dataLabelColor: X.ink, dataLabelFontFace: "+mn-lt", dataLabelFormatCode: "#,##0",
+    valAxisHidden: true, valGridLine: { style: "none" }, valAxisMinVal: 0,
+    catAxisOrientation: "maxMin", catAxisLabelColor: X.ink, catAxisLabelFontSize: 11, catAxisLabelFontFace: "+mn-lt", catAxisLineShow: true, catGridLine: { style: "none" },
+  }, o));
+}
+
+async function page3() {
+  const s = pres.addSlide({ masterName: "DASH_T", sectionTitle: "مستهدفات الإيرادات" });
+  s.addText("تحليل مستهدفات الإيرادات", { placeholder: "title" });
+
+  let b = await chartCard(s, 0, 0, fa.FaFileInvoiceDollar, "الإيرادات المفوترة مقابل المستهدف", "chart-billed");
+  chart(s, pres.ChartType.bar, [
+    { name: "قيمة المفوتر", labels: ["الفترة الحالية", "الإجمالي"], values: [3399, 3399] },
+    { name: "المستهدف", labels: ["الفترة الحالية", "الإجمالي"], values: [3368, 3364] },
+  ], b, { chartColors: [X.teal, X.sage], valAxisMaxVal: 4000, barGapWidthPct: 110 });
+
+  b = await chartCard(s, 1, 0, fa.FaCoins, "إجمالي المحصل", "chart-collected");
+  chart(s, pres.ChartType.bar, [
+    { name: "إجمالي المحصل", labels: ["السنة الحالية", "السنوات السابقة", "إجمالي المحصل"], values: [3305, 466, 2955] },
+  ], b, { chartColors: [X.teal], valAxisMaxVal: 3900, barGapWidthPct: 90 });
+
+  const sc = ["المفوترة (الإعتماد الأصلي)", "المفوترة (بعد التعديل)", "المحصلة (بعد التعديل)"];
+  b = await chartCard(s, 0, 1, fa.FaBalanceScale, "نسبة تغطية النفقات التشغيلية", "chart-coverage");
+  chart(s, pres.ChartType.bar, [
+    { name: "الفترة الحالية", labels: sc, values: [49, 52, 71] },
+    { name: "الإجمالي", labels: sc, values: [70, 50, 76] },
+  ], b, { chartColors: [X.teal, X.sage], valAxisMaxVal: 100, dataLabelFormatCode: '0"%"' });
+
+  b = await chartCard(s, 1, 1, fa.FaBullseye, "القيمة مقابل مستهدف النفقات التشغيلية", "chart-opex-targets");
+  chart(s, pres.ChartType.bar, [
+    { name: "القيمة", labels: sc, values: [3399, 3399, 2955] },
+    { name: "المستهدف (الفترة الحالية)", labels: sc, values: [3993, 3911, 3911] },
+    { name: "المستهدف (الإجمالي)", labels: sc, values: [3593, 3259, 3259] },
+  ], b, { chartColors: [X.teal, X.sage, X.grey], valAxisMaxVal: 4700, dataLabelFontSize: 10, barGapWidthPct: 50, barOverlapPct: -5 });
+  s.addNotes("تحليل مستهدفات الإيرادات — القيم بالمليون ريال، ونسب التغطية بالنسبة المئوية.");
+}
+
+async function page4() {
+  const s = pres.addSlide({ masterName: "DASH_T", sectionTitle: "المديونيات" });
+  s.addText("تحليل المديونيات", { placeholder: "title" });
+
+  let b = await chartCard(s, 0, 0, fa.FaExchangeAlt, "حركة المديونية في السنة الحالية", "chart-debt-flow");
+  chart(s, pres.ChartType.bar, [
+    { name: "مليون ريال", labels: ["رصيد بداية السنة", "الملغي", "ما تم سداده", "المتبقي"], values: [121, 119, 328, 125] },
+  ], b, { chartColors: [X.teal], valAxisMaxVal: 380, barGapWidthPct: 80 });
+
+  // payment ratio: large ring + the two amounts behind it
+  b = await chartCard(s, 1, 0, fa.FaHandshake, "نسبة السداد", "chart-pay-ratio");
+  const d = 1.95, dx = b.x + 0.35, dy = b.y + (b.h - d) / 2;
+  if (BG) s.addShape(pres.ShapeType.ellipse, { x: dx + 0.12, y: dy + 0.12, w: d - 0.24, h: d - 0.24, fill: { color: "FFFFFF" }, line: { color: X.track, width: 18 } });
+  doughnut(s, 62, dx, dy, d, X.teal);
+  V(s, "62%", { x: dx, y: dy + d / 2 - 0.25, w: d, h: 0.5, fontSize: 24, bold: true, align: "center", color: X.teal });
+  [["ما تم سداده من المديونية في السنة الحالية", "328", X.teal], ["المتبقي من المديونية", "125", X.grey]].forEach(([lab, v, col], j) => {
+    const ty = b.y + 0.3 + j * 1.0, tx = dx + d + 0.4, tw = b.x + b.w - tx;
+    s.addShape(pres.ShapeType.roundRect, { x: tx + tw - 0.14, y: ty + 0.07, w: 0.14, h: 0.14, rectRadius: 0.03, fill: { color: col }, line: { type: "none" } });
+    T(s, lab, { x: tx, y: ty, w: tw - 0.24, h: 0.28, fontSize: 11, color: X.mute });
+    amount(s, v, tx, ty + 0.32, tw - 0.24, 0.45, 24);
+  });
+
+  b = await chartCard(s, 0, 1, fa.FaCalendarAlt, "مقارنة الفترتين", "chart-periods");
+  const tl = ["إجمالي رصيد المديونية", "إجمالي ما تم سداده", "إجمالي المتبقي"];
+  chart(s, pres.ChartType.bar, [
+    { name: "2007 - 2016", labels: tl, values: [116, 299, 122] },
+    { name: "2017 - 2025", labels: tl, values: [126, 327, 112] },
+  ], b, { chartColors: [X.teal, X.sage], valAxisMaxVal: 380 });
+
+  b = await chartCard(s, 1, 1, fa.FaLayerGroup, "رصيد المديونية حسب التبويب", "chart-tabs");
+  const cats = ["الإيرادات الإستثمارية", "رسوم وتراخيص", "جزاءات وغرامات", "التبغ والإيواء", "أخرى"];
+  chart(s, pres.ChartType.bar, [
+    { name: "2007 - 2016", labels: cats, values: [116, 116, 128, 110, 117] },
+    { name: "2017 - 2025", labels: cats, values: [108, 121, 124, 130, 108] },
+  ], b, { chartColors: [X.teal, X.sage], valAxisMaxVal: 150, barGapWidthPct: 60, barOverlapPct: -5 });
+  s.addNotes("تحليل المديونيات — جميع القيم بالمليون ريال.");
+}
+
 (async () => {
   await page1();
+  await page3();
   await page2();
+  await page4();
   await pres.writeFile({ fileName: OUT });
   await applyTheme(OUT, THEME);
   console.log("wrote", OUT);

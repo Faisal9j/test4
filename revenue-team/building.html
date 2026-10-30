@@ -77,7 +77,7 @@ footer .card{pointer-events:auto}
 .speed{display:flex;gap:4px;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted)}
 .speed .seg button{padding:3px 9px;font-size:12px}
 
-aside.ui{left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 92px);width:300px;max-height:calc(100% - 260px);display:flex;flex-direction:column}
+aside.ui{left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 92px);width:320px;max-height:calc(100% - 260px);display:flex;flex-direction:column}
 aside .hd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);gap:8px}
 aside .hd strong{font-size:13.5px}
 aside .hd small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
@@ -87,7 +87,36 @@ aside .tog{border:0;background:transparent;color:var(--muted);font:600 12px var(
 #log li time{color:var(--muted);font-variant-numeric:tabular-nums;font-size:11.5px;direction:ltr;text-align:left}
 #log li.alert{color:var(--bad);font-weight:600}
 #log li.ok{color:var(--accent);font-weight:600}
-aside.collapsed #log{display:none}
+aside.collapsed #log,aside.collapsed #roster{display:none}
+.tabs{display:flex;align-items:center;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line)}
+.tabs [role=tab]{border:0;background:transparent;color:var(--muted);font:600 13px var(--font-ui);padding:8px 10px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs [role=tab][aria-selected=true]{color:var(--fg);border-bottom-color:var(--accent)}
+.tabs [role=tab] small{font-weight:500;color:var(--muted)}
+.tabs .tog{margin-inline-start:auto}
+#roster{overflow:auto;min-height:0;padding:12px 0 8px}
+.rs-head{padding:0 14px 10px;display:flex;flex-direction:column;gap:8px}
+.rs-head strong{font:700 17px var(--font-display)}
+.rs-sum{display:flex;gap:6px;flex-wrap:wrap}
+.chipc{--c:var(--idle);display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--c);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chipc::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.rs-grp{padding:8px 14px 3px;font-size:11.5px;color:var(--muted);font-weight:600;border-top:1px solid var(--line);margin-top:4px}
+.rs-row{--c:var(--idle);display:grid;grid-template-columns:10px 1fr auto;gap:9px;align-items:center;padding:5px 14px;width:100%;border:0;background:transparent;color:var(--fg);text-align:right;font:inherit;cursor:pointer}
+.rs-row:hover,.rs-row:focus-visible{background:var(--accent-soft);outline:none}
+.rs-row>i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.rs-row b{font-size:13px;font-weight:600;display:block}
+.rs-row small{display:block;color:var(--c);font-size:11.5px;font-weight:600}
+.rs-row em{font-style:normal;font-size:11px;color:var(--muted);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.rs-fl{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:8px 14px;width:100%;border:0;background:transparent;color:var(--fg);text-align:right;font:inherit;cursor:pointer}
+.rs-fl:hover,.rs-fl:focus-visible{background:var(--accent-soft);outline:none}
+.rs-fl .num{font:700 17px var(--font-display);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft)}
+.rs-fl b{font-size:13.5px;display:block;margin-bottom:4px}
+.rs-fl .rs-sum{gap:4px}
+.rs-fl .chipc{font-size:11px;padding:2px 7px}
+.rs-note{padding:6px 14px 0;font-size:11.5px;color:var(--muted);line-height:1.6}
+nav .num{position:relative}
+nav .bdg{position:absolute;top:-5px;left:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--warn);color:#1a1408;font:700 10.5px var(--font-ui);display:grid;place-items:center;font-variant-numeric:tabular-nums}
+nav .bdg:empty{display:none}
+nav .live{color:var(--warn)!important;font-weight:600}
 
 .modal{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(4,8,14,.6);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .modal .card{width:min(440px,100%);padding:18px;display:flex;flex-direction:column;gap:12px;background:var(--panel-solid)}
@@ -109,7 +138,7 @@ aside.collapsed #log{display:none}
 #loading{position:fixed;inset:0;display:grid;place-items:center;z-index:30;background:var(--bg);font:600 15px var(--font-ui);color:var(--muted)}
 
 @media (max-width:860px){
-  nav.ui{top:auto;transform:none;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);flex-direction:row;width:auto;left:max(16px,env(safe-area-inset-left,0px));overflow-x:auto;padding:6px}
+  nav.ui{top:calc(env(safe-area-inset-top,0px) + 132px);transform:none;bottom:auto;flex-direction:row;width:auto;left:max(16px,env(safe-area-inset-left,0px));overflow-x:auto;padding:8px 6px 6px}
   nav .fl{grid-template-columns:auto;padding:4px}
   nav .fl span,nav hr{display:none}
   nav .num{width:40px;height:36px;font-size:17px}
@@ -155,8 +184,13 @@ aside.collapsed #log{display:none}
 <nav class="ui card" aria-label="الأدوار" id="floors"></nav>
 
 <aside class="ui card" id="logbox">
-  <div class="hd"><strong>سجل العمل</strong><small id="count">0 تقرير معتمد</small><button class="tog" id="logtog" type="button" aria-expanded="true">إخفاء</button></div>
-  <ol id="log"></ol>
+  <div class="tabs" role="tablist" aria-label="اللوحة">
+    <button type="button" role="tab" aria-selected="true" data-tab="roster">حالة الدور</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="log">السجل <small id="count">· 0 معتمد</small></button>
+    <button class="tog" id="logtog" type="button" aria-expanded="true">إخفاء</button>
+  </div>
+  <div id="roster"></div>
+  <ol id="log" hidden></ol>
 </aside>
 
 <footer class="ui">
@@ -831,7 +865,7 @@ async function runReport(){
   ANALYSTS().forEach(a=>a.setStatus('متاح','idle'));
   while(true){
     const res=await reviewChain();
-    if(res.ok){approved++;$('#count').textContent=`${approved} تقرير معتمد`;A.faisal.setStatus('اعتمد ونشر','done');log(`Faisal اعتمد التقرير ونُشر (العدد ${approved})`,'ok');setStage(9,'منشور');await wait(3);A.faisal.setStatus('في مكتبه','idle');break;}
+    if(res.ok){approved++;$('#count').textContent=`· ${approved} معتمد`;A.faisal.setStatus('اعتمد ونشر','done');log(`Faisal اعتمد التقرير ونُشر (العدد ${approved})`,'ok');setStage(9,'منشور');await wait(3);A.faisal.setStatus('في مكتبه','idle');break;}
     const notes=res.notes||'بدون تفاصيل';log(`Faisal رجّع التقرير: ${notes}`,'alert');A.faisal.setStatus('رجّع بملاحظات','alert');
     if(bumpReturn('faisal','neves'))log('تم رفع التنبيه، والتقرير يرجع للمراجعة');
     const V=A.vandaik;await V.goTo(ROOM.fs.visit,'طالع لـ Faisal');V.setStatus('ياخذ الملاحظات','walk');await wait(1.5);
@@ -861,18 +895,56 @@ document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{SIM.speed=+b.da
 $('#logtog').onclick=()=>{const c=$('#logbox').classList.toggle('collapsed');$('#logtog').textContent=c?'إظهار':'إخفاء';$('#logtog').setAttribute('aria-expanded',!c);};
 if(innerWidth<860){$('#logbox').classList.add('collapsed');$('#logtog').textContent='إظهار';}
 
+/* ---------- per-floor status panel ---------- */
+const FLOOR_NAMES=['الأرضي','الدور الأول','الدور الثاني','الدور الثالث','الدور الرابع'];
+const KCOL={work:'var(--warn)',walk:'var(--walk)',rest:'var(--rest)',meet:'var(--meet)',alert:'var(--bad)',done:'#7fd6c4',idle:'var(--idle)',wait:'var(--idle)'};
+const isBusy=a=>['work','walk','meet','alert'].includes(a.statusKind);
+const curFloor=a=>Math.round(a.floatFloor());
+function whereNow(a){if(a.ride)return 'في المصعد';const r=!a.steps.length&&a.spot&&a.spot.room;const f=curFloor(a);
+  if(f!==a.home.f)return FLOOR_NAMES[f]+(r?' · '+r.name:'');return r?r.name:'في الممر';}
+function counts(list){const c={busy:0,rest:0,idle:0};list.forEach(a=>{if(isBusy(a))c.busy++;else if(a.statusKind==='rest')c.rest++;else c.idle++;});return c;}
+function chips(c){return `<span class="chipc" style="--c:var(--warn)">يشتغلون ${c.busy}</span><span class="chipc" style="--c:var(--rest)">يرتاحون ${c.rest}</span><span class="chipc" style="--c:var(--idle)">متاحين ${c.idle}</span>`;}
+function esc(t){return String(t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function personRow(a){return `<button type="button" class="rs-row" data-go="${curFloor(a)}" style="--c:${KCOL[a.statusKind]||'var(--idle)'}"><i></i><span><b>${esc(a.name)}</b><small>${esc(a.statusText)}</small></span><em>${esc(whereNow(a))}</em></button>`;}
+let rsSig='';
+function renderRoster(force){
+  const el=$('#roster');let html='',sig=view+'|';
+  if(view===null){
+    html+=`<div class="rs-head"><strong>المبنى كامل</strong><div class="rs-sum">${chips(counts(agents))}</div></div>`;
+    for(let f=4;f>=0;f--){const team=agents.filter(a=>a.home.f===f);const c=counts(team);sig+=f+':'+c.busy+','+c.rest+';';
+      html+=`<button type="button" class="rs-fl" data-go="${f}"><span class="num">${FLOORS[f].num}</span><span><b>${FLOORS[f].name} · ${team.length}</b><span class="rs-sum">${chips(c)}</span></span></button>`;}
+    html+='<p class="rs-note">اضغط على أي دور تشوف مين فيه يشتغل ومين لا.</p>';
+  }else{
+    const team=agents.filter(a=>a.home.f===view);const guests=agents.filter(a=>a.home.f!==view&&!a.ride&&curFloor(a)===view);
+    const busy=team.filter(isBusy),free=team.filter(a=>!isBusy(a));
+    html+=`<div class="rs-head"><strong>${FLOORS[view].name}</strong><div class="rs-sum">${chips(counts(team))}</div></div>`;
+    html+=`<div class="rs-grp">يشتغلون الحين (${busy.length})</div>`+(busy.length?busy.map(personRow).join(''):'<p class="rs-note">ما أحد يشتغل في هالدور الحين.</p>');
+    html+=`<div class="rs-grp">مو شغّالين (${free.length})</div>`+(free.length?free.map(personRow).join(''):'<p class="rs-note">الكل يشتغل.</p>');
+    if(guests.length)html+=`<div class="rs-grp">من أدوار ثانية وموجودين هنا (${guests.length})</div>`+guests.map(personRow).join('');
+    sig+=[...team,...guests].map(a=>a.id+a.statusText+whereNow(a)).join('|');
+  }
+  if(!force&&sig===rsSig)return;rsSig=sig;el.innerHTML=html;
+}
+$('#roster').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)setView(+b.dataset.go);});
+function updateNavCounts(){nav.querySelectorAll('.fl[data-f]').forEach(b=>{const f=+b.dataset.f;const team=agents.filter(a=>a.home.f===f);const c=counts(team);
+  b.querySelector('.bdg').textContent=c.busy||'';const sm=b.querySelector('small');sm.textContent=c.busy?`${c.busy} يشتغلون من ${team.length}`:`${FLOORS[f].desc}`;sm.classList.toggle('live',c.busy>0);});}
+document.querySelectorAll('[data-tab]').forEach(t=>t.onclick=()=>{
+  if($('#logbox').classList.contains('collapsed'))$('#logtog').click();
+  document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-selected',x===t));
+  $('#roster').hidden=t.dataset.tab!=='roster';$('#log').hidden=t.dataset.tab!=='log';});
+
 /* ---------- floors nav + camera ---------- */
 let view=null; // null = whole building
 const nav=$('#floors');
-for(let f=4;f>=0;f--){const F=FLOORS[f];const b=document.createElement('button');b.type='button';b.className='fl';b.dataset.f=f;b.innerHTML=`<div class="num"></div><span><strong></strong><small></small></span>`;
-  b.querySelector('.num').textContent=F.num;b.querySelector('strong').textContent=F.name;b.querySelector('small').textContent=F.desc;b.onclick=()=>setView(f);nav.appendChild(b);}
+for(let f=4;f>=0;f--){const F=FLOORS[f];const b=document.createElement('button');b.type='button';b.className='fl';b.dataset.f=f;b.innerHTML=`<div class="num"><i class="bdg"></i></div><span><strong></strong><small></small></span>`;
+  b.querySelector('.num').prepend(F.num);b.querySelector('strong').textContent=F.name;b.querySelector('small').textContent=F.desc;b.onclick=()=>setView(f);nav.appendChild(b);}
 nav.appendChild(document.createElement('hr'));
 const ball=document.createElement('button');ball.type='button';ball.className='fl all';ball.innerHTML='<div class="num">▦</div><span><strong>المبنى كامل</strong><small>كل الأدوار مع المصعد</small></span>';ball.onclick=()=>setView(null);nav.appendChild(ball);
 let tw=null;
 function camGoal(){const asp=innerWidth/innerHeight;const k=Math.min(1,asp/1.45);
-  if(view===null)return{tgt:new THREE.Vector3(-.5,floorY(2)+1.2,0),zoom:.5*k};
+  if(view===null)return{tgt:new THREE.Vector3(-.5,floorY(2)+1.6,0),zoom:.42*k};
   return{tgt:new THREE.Vector3(-.8,floorY(view)+.8,.6),zoom:1.05*k};}
-function setView(f){view=f;spacingTarget=f===null?SP.whole:SP.focus;
+function setView(f){view=f;rsSig='';if(typeof nav!=='undefined'){renderRoster(true);updateNavCounts();}spacingTarget=f===null?SP.whole:SP.focus;
   nav.querySelectorAll('.fl').forEach(b=>b.setAttribute('aria-pressed',(b.dataset.f===undefined?f===null:+b.dataset.f===f)));
   tw={t:0,z0:camera.zoom,t0:controls.target.clone(),dir:camera.position.clone().sub(controls.target).normalize()};}
 
@@ -894,9 +966,9 @@ applyTod();
 /* ---------- loop ---------- */
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);const a=w/h,half=12;camera.left=-half*a;camera.right=half*a;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
-setView(null);{const g=camGoal();controls.target.copy(g.tgt);camera.position.copy(g.tgt).addScaledVector(ISO,120);camera.zoom=g.zoom;camera.updateProjectionMatrix();tw=null;}
+setView(0);{const g=camGoal();controls.target.copy(g.tgt);camera.position.copy(g.tgt).addScaledVector(ISO,120);camera.zoom=g.zoom;camera.updateProjectionMatrix();tw=null;}
 const v3=new THREE.Vector3();
-let last=performance.now(),clockTick=0;
+let last=performance.now(),clockTick=0,rosterTick=1;
 function frame(now){
   const rdt=Math.min(.05,(now-last)/1000);last=now;const dt=rdt*SIM.speed;
   SIM.t+=dt;for(let i=waiters.length-1;i>=0;i--)if(waiters[i].at<=SIM.t){waiters[i].r();waiters.splice(i,1);}
@@ -928,6 +1000,7 @@ function frame(now){
     if(!show){if(a.el.style.display!=='none')a.el.style.display='none';return;}
     a.el.style.display='';a.el.classList.toggle('small',view===null&&(a.statusKind==='rest'||a.statusKind==='idle'||a.statusKind==='wait'));
     a.el.style.transform=`translate(${(v3.x*.5+.5)*W}px,${(-v3.y*.5+.5)*H}px) translate(-50%,-100%)`;});
+  if((rosterTick+=rdt)>.5){rosterTick=0;renderRoster();updateNavCounts();}
   if((clockTick+=rdt)>1){clockTick=0;$('#clock').textContent=new Date().toTimeString().slice(0,5);applyTod();}
   requestAnimationFrame(frame);
 }

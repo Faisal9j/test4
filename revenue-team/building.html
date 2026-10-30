@@ -321,8 +321,8 @@ const floorY=f=>f*spacing;
 const R=(id,name,side,x0,x1,kind,extra={})=>Object.assign({id,name,side,x0,x1,kind,door:(x0+x1)/2,s:side==='N'?-1:1,cx:(x0+x1)/2},extra);
 const FLOORS=[
  {name:'الأرضي',num:'أ',desc:'غرفة التحكم · Angel وفريقه',rooms:[R('ang','مكتب Angel','N',-13,-7,'office',{glass:true}),R('ctrl','غرفة التحكم','N',-7,3,'ctrl'),R('srv','الخوادم','N',3,11,'servers'),R('lobby','الاستقبال','S',-13,11,'lobby')]},
- {name:'الدور الأول',num:'١',desc:'الرسوم · التراخيص · العقود',rooms:[R('fees','الرسوم','N',-13,-5,'dept'),R('lic','التراخيص','N',-5,3,'dept'),R('inv','العقود الاستثمارية','N',3,11,'dept'),R('trk1','لوحة المتابعة','S',-13,-5,'track'),R('lng1','الاستراحة','S',-5,3,'lounge'),R('cafe1','المقهى','S',3,11,'cafe')]},
- {name:'الدور الثاني',num:'٢',desc:'التبغ · الإيواء · الجزاءات · الأخرى',rooms:[R('tob','التبغ','N',-13,-7,'dept'),R('lod','الإيواء','N',-7,-1,'dept'),R('pen','الجزاءات والغرامات','N',-1,5,'dept'),R('oth','الإيرادات الأخرى','N',5,11,'dept'),R('trk2','لوحة المتابعة','S',-13,-5,'track'),R('lng2','الاستراحة','S',-5,3,'lounge'),R('cafe2','المقهى','S',3,11,'cafe')]},
+ {name:'الدور الأول',num:'١',desc:'الرسوم والتراخيص · الاستثمارية · الجزاءات',rooms:[R('lic','الرسوم والتراخيص','N',-13,-3,'dept',{short:'الرسوم',roles:'APAPA'}),R('inv','الإيرادات الاستثمارية','N',-3,5,'dept',{short:'الاستثمار',roles:'APAP'}),R('pen','الجزاءات والغرامات','N',5,11,'dept',{short:'الجزاءات',roles:'APA'}),R('trk1','لوحة المتابعة','S',-13,-5,'track'),R('lng1','الاستراحة','S',-5,3,'lounge'),R('cafe1','المقهى','S',3,11,'cafe')]},
+ {name:'الدور الثاني',num:'٢',desc:'التبغ والإيواء · الأخرى',rooms:[R('tob','التبغ والإيواء','N',-13,-4,'dept',{short:'التبغ والإيواء',roles:'APA'}),R('oth','الإيرادات الأخرى','N',-4,3,'dept',{short:'الأخرى',roles:'AP'}),R('lib2','مكتبة البيانات','N',3,11,'archive'),R('trk2','لوحة المتابعة','S',-13,-5,'track'),R('lng2','الاستراحة','S',-5,3,'lounge'),R('cafe2','المقهى','S',3,11,'cafe')]},
  {name:'الدور الثالث',num:'٣',desc:'التحليل · المراجعة · التدقيق · الطباعة',rooms:[R('hall','قاعة التحليل والاجتماعات','N',-13,-2,'hall'),R('vd','مكتب Vandaik','N',-2,4,'office',{glass:true}),R('prn','المطبعة','N',4,11,'print'),R('sl','مكتب Salah','S',-13,-6,'office'),R('az','مكتب Aziz','S',-6,1,'office'),R('arc','الأرشيف','S',1,11,'archive')]},
  {name:'الدور الرابع',num:'٤',desc:'مكتب Faisal · قاعة الاجتماعات',rooms:[R('fs','مكتب Faisal','N',-13,-3,'office',{boss:true}),R('lng4','الاستراحة','N',-3,11,'lounge'),R('meet','قاعة الاجتماعات العامة','S',-13,11,'meet')]},
 ];
@@ -463,21 +463,22 @@ function buildWalls(g,F,f){
 const REST={1:[],2:[],4:[]};
 const S={}; // named spots
 
-function buildDept(g,r,n){
-  const s=r.s,cx=r.cx;
+function buildDept(g,r){
+  const s=r.s,cx=r.cx,roles=r.roles;
   r.lead=spot(r,cx,s*6.0,faceDoor(s),[[cx-1.25,s*4.3],[cx-1.25,s*6.0]]);
   desk(g,r.lead,1.6,.7,.8,2);
   r.visit=spot(r,cx,s*4.2,faceBack(s));
-  const L=r.x0+.45,Rr=r.x1-.45;
-  const pos=n===4?[[L,3.2,'L'],[Rr,3.2,'R'],[L,5.6,'L']]:[[L,3.6,'L'],[Rr,3.6,'R']];
-  r.seats=[r.lead];
-  for(const [x,d,lr] of pos){const sp=spot(r,x,s*d,lr==='L'?PI/2:-PI/2,[[lr==='L'?x+.05:x-.05,s*2.3]]);desk(g,sp,1.3,.62,.72);r.seats.push(sp);}
-  plant(g,r.x1-.5,s*6.5,.8);
-  box(.9,1.7,.4,MAT.wood,r.x0+.7,.85,s*6.7,g);
-  r.kpiTex=canvasTex(384,250,()=>{});
-  const sg=new THREE.Group();sg.position.set(r.x1-.55,0,s*5.3);sg.rotation.y=PI/4;g.add(sg);
-  box(.05,1.05,.05,MAT.deskLeg,0,.52,0,sg);box(.36,.03,.36,MAT.deskLeg,0,.015,0,sg);box(.86,.6,.04,MAT.dark,0,1.35,-.025,sg);
-  const kp=plane(.8,.52,new THREE.MeshBasicMaterial({map:r.kpiTex}),sg);kp.position.set(0,1.35,.002);
+  const L=r.x0+.45,Rr=r.x1-.45,D=[3.2,5.0];let nl=0,nr=0;
+  r.seats=[r.lead];r.seatRoles=['A'];
+  for(const role of roles.slice(1)){const left=role==='P';const x=left?L:Rr,d=D[left?nl++:nr++];
+    const sp=spot(r,x,s*d,left?PI/2:-PI/2,[[left?x+.05:x-.05,s*2.3]]);desk(g,sp,1.3,.62,.72);r.seats.push(sp);r.seatRoles.push(role);}
+  label('التخطيط',0,g,r.x0+1.3,s*6.3,0,'rgba(240,181,74,.7)');label('التحليل',0,g,r.x1-1.3,s*6.3,0,'rgba(127,214,196,.7)');
+  plant(g,r.x1-.5,s*6.55,.7);
+  const stand=(x,rot,tex)=>{const sg=new THREE.Group();sg.position.set(x,0,s*6.2);sg.rotation.y=rot;g.add(sg);
+    box(.05,1.05,.05,MAT.deskLeg,0,.52,0,sg);box(.36,.03,.36,MAT.deskLeg,0,.015,0,sg);box(.86,.6,.04,MAT.dark,0,1.35,-.025,sg);
+    const kp=plane(.8,.52,new THREE.MeshBasicMaterial({map:tex}),sg);kp.position.set(0,1.35,.002);};
+  r.kpiTex=canvasTex(384,250,()=>{});r.planTex=canvasTex(384,250,()=>{});
+  stand(r.x1-.6,PI/4,r.kpiTex);stand(r.x0+.6,PI/4,r.planTex);
 }
 function buildTrack(g,r,f){
   const tex=canvasTex(1024,320,()=>{});boards['f'+f]=tex;
@@ -522,7 +523,7 @@ function buildHall(g,r){
   S.torres=spot(r,-8.8,-5.65,0,[[-10.6,-2.4],[-10.6,-5.65]]);S.gerrard=spot(r,-6.2,-5.65,0,[[-4.4,-2.4],[-4.4,-5.65]]);
   S.hallHead=spot(r,-10.7,-4.2,PI/2,[[-10.7,-2.4]]);
   S.drop=[spot(r,-9.4,-2.05,PI),spot(r,-8.2,-2.05,PI),spot(r,-10.3,-2.2,PI)];
-  const tex=canvasTex(768,300,(c,W,H)=>{c.fillStyle='#16302c';c.fillRect(0,0,W,H);txt(c,'قاعة التحليل',W/2,60,44,'#9fe3d3',700);txt(c,'ملخصات الأقسام السبعة',W/2,140,36,'#e6efe9',500);});
+  const tex=canvasTex(768,300,(c,W,H)=>{c.fillStyle='#16302c';c.fillRect(0,0,W,H);txt(c,'قاعة التحليل',W/2,60,44,'#9fe3d3',700);txt(c,'ملخصات الأقسام الخمسة',W/2,140,36,'#e6efe9',500);});
   boards.hall=tex;wallBoard(g,-7.5,-6.88,4,1.5,0,tex);
   plant(g,-12.4,-6.4);plant(g,-2.6,-6.4,.8);
   box(.9,.05,.6,MAT.desk,-12.2,.72,-2.5,g);for(const [dx,dz] of [[-.38,-.24],[.38,-.24],[-.38,.24],[.38,.24]])box(.05,.7,.05,MAT.deskLeg,-12.2+dx,.35,-2.5+dz,g);
@@ -545,7 +546,7 @@ function buildPrint(g,r){
   box(.9,1.0,.6,MAT.wood,r.x0+.8,.5,s*6.5,g);for(let i=0;i<4;i++)box(.42,.03,.3,MAT.paper,r.x0+.8,1.02+i*.04,s*6.5,g);
 }
 function addPaper(){const p=animated.printer;const n=p.stack.children.length;if(n<14)box(.42,.03,.3,MAT.paper,p.sx,1.2+n*.035,p.sz,p.stack);}
-function buildArchive(g,r){const s=r.s;const rnd=seeded(11);const cols=['#7a2f2f','#2f4f7a','#c4a35a','#3d6b4a','#5e4a7a','#b8b0a2'];for(let i=0;i<4;i++){const x=r.x0+1.8+i*2.2;box(.5,2.0,3.2,MAT.woodDark,x,1.0,s*5.0,g);for(let k=0;k<4;k++){box(.56,.04,3.2,M('#2b1f18'),x,.15+k*.5,s*5.0,g).castShadow=false;for(const side of [-1,1]){let zz=3.45;while(zz<6.5){const w=.08+rnd()*.07,h=.3+rnd()*.14;box(.22,h,w,M(cols[Math.floor(rnd()*cols.length)]),x+side*.2,.17+k*.5+h/2,s*(zz+w/2),g).castShadow=false;zz+=w+.015;}}}}}
+function buildArchive(g,r){const s=r.s;const rnd=seeded(11);const cols=['#7a2f2f','#2f4f7a','#c4a35a','#3d6b4a','#5e4a7a','#b8b0a2'];const nsh=Math.min(4,Math.floor((r.x1-r.x0-1.2)/2.2));for(let i=0;i<nsh;i++){const x=r.x0+1.8+i*2.2;box(.5,2.0,3.2,MAT.woodDark,x,1.0,s*5.0,g);for(let k=0;k<4;k++){box(.56,.04,3.2,M('#2b1f18'),x,.15+k*.5,s*5.0,g).castShadow=false;for(const side of [-1,1]){let zz=3.45;while(zz<6.5){const w=.08+rnd()*.07,h=.3+rnd()*.14;box(.22,h,w,M(cols[Math.floor(rnd()*cols.length)]),x+side*.2,.17+k*.5+h/2,s*(zz+w/2),g).castShadow=false;zz+=w+.015;}}}}}
 function buildServers(g,r){const s=r.s;const on=new THREE.MeshStandardMaterial({color:0x7cffb2,emissive:0x2bff88,emissiveIntensity:1});const off=new THREE.MeshStandardMaterial({color:0x1f4b37,emissive:0x0,emissiveIntensity:0});const amb=new THREE.MeshStandardMaterial({color:0x7cc3ff,emissive:0x3aa0ff,emissiveIntensity:1});
   for(const d of [3.0,4.9])for(let i=0;i<6;i++){const x=r.x0+1+i*1.1;box(.9,2.0,.8,MAT.rack,x,1.0,s*d,g);for(let k=0;k<6;k++){const led=new THREE.Mesh(new THREE.BoxGeometry(.06,.04,.02),k%3===0?amb:on);led.position.set(x-.3+(k%3)*.12,.5+Math.floor(k/3)*.7+((i+k)%2)*.3,s*d-s*.41);g.add(led);animated.leds.push({m:led,on,off,ph:Math.random()*6});}}
   boards.grid=canvasTex(640,340,()=>{});wallBoard(g,r.cx,s*6.88,3.4,1.8,0,boards.grid).position.y=2.35;}
@@ -579,7 +580,7 @@ FLOORS.forEach((F,f)=>{
   const cor=texPlane(X1-X0,CW*2,'stone','#2f3846',2.4,g);cor.position.set((X0+X1)/2,.003,0);
   F.rooms.forEach(r=>buildRoomFloor(g,r));
   buildWalls(g,F,f);
-  F.rooms.forEach(r=>{({dept:()=>buildDept(g,r,r.id==='inv'?4:3),track:()=>buildTrack(g,r,f),lounge:()=>buildLounge(g,r,f),cafe:()=>buildCafe(g,r,f),office:()=>buildOffice(g,r),hall:()=>buildHall(g,r),print:()=>buildPrint(g,r),archive:()=>buildArchive(g,r),servers:()=>buildServers(g,r),ctrl:()=>buildCtrl(g,r),lobby:()=>buildLobby(g,r),meet:()=>buildMeet(g,r)})[r.kind]();});
+  F.rooms.forEach(r=>{({dept:()=>buildDept(g,r),track:()=>buildTrack(g,r,f),lounge:()=>buildLounge(g,r,f),cafe:()=>buildCafe(g,r,f),office:()=>buildOffice(g,r),hall:()=>buildHall(g,r),print:()=>buildPrint(g,r),archive:()=>buildArchive(g,r),servers:()=>buildServers(g,r),ctrl:()=>buildCtrl(g,r),lobby:()=>buildLobby(g,r),meet:()=>buildMeet(g,r)})[r.kind]();});
   // elevator landing doors + indicator
   const dl=box(.06,2.2,.8,MAT.metal,X1+.05,1.1,-.4,g),dr=box(.06,2.2,.8,MAT.metal,X1+.05,1.1,.4,g);dl.castShadow=dr.castShadow=false;
   box(.1,.12,2.0,MAT.mull,X1+.05,2.26,0,g);
@@ -773,7 +774,7 @@ function route(ag,to){
 }
 
 /* ---------- cast ---------- */
-const DEPTS=['fees','lic','inv','tob','lod','pen','oth'].map(id=>ROOM[id]);
+const DEPTS=['lic','inv','pen','tob','oth'].map(id=>ROOM[id]);const ND=DEPTS.length;
 new Agent('faisal','Faisal',OUT.mashkhas('#b98563','#c48a2c'),ROOM.fs.seat);
 S.angel=ROOM.ang.seat;
 new Agent('angel','Angel',OUT.suit('#8a6cf0','#c99a7a','#3a2a20','headset'),S.angel);
@@ -794,8 +795,8 @@ const HAIRS=['#1d1712','#2c2018','#3a2618','#191512','#6b4a2e'];
 function deptOutfit(r,k,j){const look=LOOKS[j%LOOKS.length],color=mix(DCOL[r.id],k%2?'#ffffff':'#000000',[0,.22,.22,.38][k]),skin=SKIN[j%SKIN.length],acc=ACCS[j%ACCS.length];
   return look==='niqab'?OUT.niqab(color):look==='suit'||look==='casual'?OUT[look](color,skin,HAIRS[j%HAIRS.length],acc):OUT[look](skin,color,acc);}
 let oi=0;
-DEPTS.forEach(r=>{r.members=[];r.seats.forEach((seat,i)=>{const ag=new Agent(r.id+i,`${r.name.split(' ')[0]} ${i+1}`,deptOutfit(r,i,oi),seat);oi++;ag.seat=seat;ag.dept=r;ag.isLead=i===0;r.members.push(ag);});});
-['faisal','angel','isak','sara','torres','gerrard','vandaik','salah','aziz','neves'].forEach(id=>A[id].seat=A[id].home);
+DEPTS.forEach(r=>{r.members=[];r.seats.forEach((seat,i)=>{const role=r.seatRoles[i],no=r.seatRoles.slice(0,i+1).filter(x=>x===role).length;const ag=new Agent(r.id+i,`${r.short} · ${role==='P'?'تخطيط':'تحليل'} ${no}`,deptOutfit(r,i%4,oi),seat);oi++;ag.seat=seat;ag.dept=r;ag.role=role;ag.isLead=i===0;r.members.push(ag);});});
+['faisal','angel','recv','cls','ent','isak','sara','torres','gerrard','vandaik','salah','aziz','neves'].forEach(id=>A[id].seat=A[id].home);
 
 /* rest spot allocation */
 const taken=new Set();
@@ -814,18 +815,22 @@ const deptState={};DEPTS.forEach(d=>deptState[d.id]='بانتظار البيان
 function drawTrack(f){const tex=boards['f'+f];if(!tex)return;const ds=FLOORS[f].rooms.filter(r=>r.kind==='dept');
   redraw(tex,(g,W,H)=>{g.fillStyle='#14231f';g.fillRect(0,0,W,H);txt(g,'لوحة متابعة الأقسام',W-30,40,34,'#9fe3d3',700,'right');
     txt(g,'الفعلي · المستهدف · الانحراف تظهر مع التشغيل الحقيقي',30,40,20,'#7f9a93',500,'left');
-    ds.forEach(drawKpi);ds.forEach((d,i)=>{const y=100+i*(200/ds.length)+10;const st=deptState[d.id];
+    ds.forEach(drawKpi);ds.forEach(drawPlan);ds.forEach((d,i)=>{const y=100+i*(200/ds.length)+10;const st=deptState[d.id];
       txt(g,d.name,W-30,y,28,'#e6efe9',600,'right');
       const c=st.startsWith('اعتمد')?'#3cc2a9':st.startsWith('يحلل')||st.startsWith('يقارن')?'#e9a443':'#5d6e6a';
       g.fillStyle=c;rr(g,30,y-18,360,36,10);g.fill();txt(g,st,210,y+1,22,'#0d1714',700);});});}
 let scanned=0;
 function drawGrid(){redraw(boards.grid,(g,W,H)=>{g.fillStyle='#0e1522';g.fillRect(0,0,W,H);txt(g,'تغطية جهات التحصيل',W-24,36,26,'#9fb0c8',600,'right');txt(g,scanned+' / 54',24,36,24,'#d9a441',600,'left');
   const cols=9,rows=6,cw=(W-48)/cols,ch=(H-80)/rows;for(let i=0;i<54;i++){const x=W-24-(i%cols+1)*cw,y=62+Math.floor(i/cols)*ch;g.fillStyle=i<scanned?'#5b8def':'#1c2738';g.fillRect(x+5,y+5,cw-10,ch-10);}});}
+function drawPlan(r){if(!r.planTex)return;const st=deptState[r.id]||'';const v=st.startsWith('اعتمد')?2:(st.startsWith('يحلل')||st.startsWith('يقارن'))?1:0;
+  redraw(r.planTex,(g,W,H)=>{g.fillStyle='#1a1608';g.fillRect(0,0,W,H);g.fillStyle='#f0b54a';g.fillRect(0,0,W,8);
+    ['الإقفال المتوقع','تقدير السنة الجاية','السيناريوهات'].forEach((t,j)=>{const y=58+j*70;txt(g,t,W-24,y+4,30,'#e9dcc0',600,'right');g.beginPath();g.arc(44,y,16,0,7);
+      if(v===0){g.strokeStyle='#5a4a26';g.lineWidth=3;g.stroke();}else{g.fillStyle=v===1?'#f0b54a':'#3cc58f';g.fill();}});});}
 function drawKpi(r){if(!r.kpiTex)return;const st=deptState[r.id]||'';const v=st.startsWith('اعتمد')?2:(st.startsWith('يحلل')||st.startsWith('يقارن'))?1:0;
   redraw(r.kpiTex,(g,W,H)=>{g.fillStyle='#0e1522';g.fillRect(0,0,W,H);g.fillStyle=DCOL[r.id];g.fillRect(0,0,W,8);
     ['الفعلي','المستهدف','الانحراف'].forEach((t,j)=>{const y=58+j*70;txt(g,t,W-24,y+4,34,'#c5d0df',600,'right');g.beginPath();g.arc(44,y,16,0,7);
       if(v===0){g.strokeStyle='#3a4a63';g.lineWidth=3;g.stroke();}else{g.fillStyle=v===1?'#5b8def':'#3cc58f';g.fill();}});});}
-const STAGES=[['Faisal','الطلب'],['Angel وفريقه','الاستلام والتصنيف'],['الأقسام السبعة','تحليل الأقسام'],['المحللون الأربعة','التحليل'],['Vandaik','المراجعة 3 من 4'],['Salah','تدقيق الأرقام'],['Aziz','تدقيق المنطق'],['Neves','طباعة PDF'],['Faisal','الاعتماد والنشر']];
+const STAGES=[['Faisal','الطلب'],['Angel وفريقه','الاستلام والتصنيف'],['الأقسام الخمسة','تحليل وتخطيط'],['المحللون الأربعة','التحليل'],['Vandaik','المراجعة 3 من 4'],['Salah','تدقيق الأرقام'],['Aziz','تدقيق المنطق'],['Neves','طباعة PDF'],['Faisal','الاعتماد والنشر']];
 let curStage=-1;let alertText='لا توجد تنبيهات';
 function drawFlow(){redraw(boards.flow,(g,W,H)=>{g.fillStyle='#10201c';g.fillRect(0,0,W,H);txt(g,'سير العمل',W-28,36,30,'#9fe3d3',700,'right');
   STAGES.forEach(([who,what],i)=>{const col=i%3,row=Math.floor(i/3);const x=W-28-col*330,y=88+row*80;const on=i===curStage,done=i<curStage;
@@ -838,8 +843,8 @@ let meetMsg='';
 function drawMeet(){redraw(boards.meet,(g,W,H)=>{g.fillStyle='#14231f';g.fillRect(0,0,W,H);txt(g,'رسالة Faisal للفريق',W-30,50,34,'#9fe3d3',700,'right');
   const text=meetMsg||'القاعة جاهزة';const words=text.split(' ');let line='',y=140;g.font=`600 38px ${FONT}`;
   for(const w of words){const t=line?line+' '+w:w;if(g.measureText(t).width>W-80){txt(g,line,W-30,y,38,'#f2efe6',600,'right');line=w;y+=56;}else line=t;}txt(g,line,W-30,y,38,'#f2efe6',600,'right');});}
-function drawHall(n){redraw(boards.hall,(c,W,H)=>{c.fillStyle='#16302c';c.fillRect(0,0,W,H);txt(c,'قاعة التحليل',W/2,60,44,'#9fe3d3',700);txt(c,`ملخصات الأقسام: ${n} من 7`,W/2,140,38,'#e6efe9',600);
-  for(let i=0;i<7;i++){c.fillStyle=i<n?'#3cc2a9':'#2b4440';rr(c,W/2-245+i*72,200,58,40,8);c.fill();}});}
+function drawHall(n){redraw(boards.hall,(c,W,H)=>{c.fillStyle='#16302c';c.fillRect(0,0,W,H);txt(c,'قاعة التحليل',W/2,60,44,'#9fe3d3',700);txt(c,`ملخصات الأقسام: ${n} من ${ND}`,W/2,140,38,'#e6efe9',600);
+  for(let i=0;i<ND;i++){c.fillStyle=i<n?'#3cc2a9':'#2b4440';rr(c,W/2-ND*36+i*72,200,58,40,8);c.fill();}});}
 function setIndicator(i,v){const ind=animated.indicators[i];if(ind.val===v)return;ind.val=v;redraw(ind.tex,(g,W,H)=>{g.fillStyle='#101514';g.fillRect(0,0,W,H);txt(g,v===0?'أ':['','١','٢','٣','٤'][v],W/2,H/2+4,62,'#ff9f43',700);});}
 [1,2].forEach(drawTrack);drawGrid();drawFlow();drawAlerts();drawMeet();drawHall(0);
 
@@ -859,19 +864,19 @@ async function hand(from,to,item,toSpot){from.carry=item;await from.goTo(toSpot,
 
 async function deptRun(r){
   deptState[r.id]='يحلل';drawTrack(r.f);
-  const analyse=async()=>{await Promise.all(r.members.map(async m=>{freeRest(m);await m.goTo(m.seat,'رايح لمكتبه');m.setStatus('يحلل','work');await wait(rand(5,9));m.setStatus('خلّص','done');}));};
+  const analyse=async()=>{await Promise.all(r.members.map(async m=>{freeRest(m);await m.goTo(m.seat,'رايح لمكتبه');m.setStatus(m.role==='P'?'يحدّث الإقفال المتوقع':'يحلل التحصيل بالنوع والعدد','work');await wait(rand(5,9));m.setStatus('خلّص','done');}));};
   await analyse();
   const L=r.members[0];const n=r.members.length;
-  deptState[r.id]='يقارن النتائج';drawTrack(r.f);L.setStatus('يقارن النتائج','work');await wait(2);
-  if(n===4&&Math.random()<.3){log(`${r.name}: تعادل 2 مقابل 2، إعادة التحليل`);L.setStatus('تعادل، إعادة','alert');await wait(1);await analyse();L.setStatus('يقارن النتائج','work');await wait(1.5);}
-  const maj=n===4?'3 من 4':'2 من 3';
-  log(`قائد ${r.name} اعتمد الأغلبية (${maj}) ووثّق رأي المختلف`);
+  deptState[r.id]='يقارن النتائج';drawTrack(r.f);L.setStatus('يراجع التحليل والتخطيط','work');await wait(2);
+  if(Math.random()<.15){log(`${r.name}: الإقفال المتوقع ما يتسق مع التحصيل، رجع للمخطط`);L.setStatus('رجّع للمخطط','alert');const P=r.members.find(m=>m.role==='P');P.setStatus('يعدّل الإقفال المتوقع','work');await wait(3);P.setStatus('خلّص','done');L.setStatus('يراجع التحليل والتخطيط','work');await wait(1.5);}
+  const maj='التحليل والتخطيط';
+  log(`قائد ${r.name} اعتمد التحليل والتخطيط`);
   r.members.slice(1).forEach(m=>{const sp=takeRest(m);m.goTo(sp,'رايح يرتاح').then(()=>m.setStatus(sp.kind==='cafe'?'في المقهى':'يرتاح','rest'));});
   const trk=FLOORS[r.f].rooms.find(x=>x.kind==='track');const idx=FLOORS[r.f].rooms.filter(x=>x.kind==='dept').indexOf(r);
   await L.goTo(trk.spots[idx],'رايح للوحة المتابعة');L.setStatus('يحدّث اللوحة','work');await wait(1.6);
   deptState[r.id]=`اعتمد ${maj}`;drawTrack(r.f);
   await hand(L,A.isak,'file',S.drop[DEPTS.indexOf(r)%3]);
-  summaries++;drawHall(summaries);addInbox();A.isak.setStatus(`استلم ${summaries} من 7`,'work');log(`ملخص ${r.name} وصل لـ Isak (${summaries} من 7)`);
+  summaries++;drawHall(summaries);addInbox();A.isak.setStatus(`استلم ${summaries} من ${ND}`,'work');log(`ملخص ${r.name} وصل لـ Isak (${summaries} من ${ND})`);
   const sp=takeRest(L);L.goTo(sp,'رايح يرتاح').then(()=>L.setStatus(sp.kind==='cafe'?'في المقهى':'يرتاح','rest'));
 }
 let summaries=0;
@@ -913,7 +918,7 @@ async function reviewChain(fromReturn){
 
 function askFaisal(){return new Promise(res=>{
   const m=$('#mApprove');$('#apNo').textContent='العدد '+(approved+1);
-  const ul=$('#apChecks');ul.innerHTML='';['قادة الأقسام السبعة اعتمدوا بالأغلبية','Vandaik اعتمد (3 من 4)','Salah دقق الأرقام','Aziz دقق المنطق'].forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
+  const ul=$('#apChecks');ul.innerHTML='';['قادة الأقسام الخمسة اعتمدوا التحليل والتخطيط','Vandaik اعتمد (3 من 4)','Salah دقق الأرقام','Aziz دقق المنطق'].forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
   $('#apNotes').value='';m.hidden=false;$('#apOk').focus();
   const done=v=>{m.hidden=true;$('#apOk').onclick=$('#apBack').onclick=null;res(v);};
   $('#apOk').onclick=()=>done({ok:true});$('#apBack').onclick=()=>done({ok:false,notes:$('#apNotes').value.trim()});
@@ -940,7 +945,7 @@ async function runReport(){
   for(const r of DEPTS){await Ag.goTo(r.visit,`يوزّع على ${r.name}`);Ag.setStatus(`يسلّم ${r.name}`,'walk');await wait(.7);log(`Angel سلّم بيانات ${r.name}`);runs.push(deptRun(r));if(r===DEPTS[2])setStage(2);}
   Ag.carry=null;Ag.goTo(S.angel,'راجع لغرفة التحكم').then(()=>Ag.setStatus('يتابع السلسلة','idle'));
   await Promise.all(runs);
-  setStage(3);A.isak.setStatus('يوزّع الملخصات','work');clearInbox();log('Isak استلم الملخصات السبعة ووزّعها على المحللين');await wait(1.8);
+  setStage(3);A.isak.setStatus('يوزّع الملخصات','work');clearInbox();log('Isak استلم ملخصات الأقسام الخمسة ووزّعها على المحللين');await wait(1.8);
   let round=0;
   while(true){
     await analystsRound();round++;

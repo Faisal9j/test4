@@ -569,75 +569,96 @@ function palm(x,z,h=5){const g=new THREE.Group();g.position.set(x,-.3,z);scene.a
 const palms=[];[[-16.5,9.5],[-8,11.5],[6,11.5],[16.5,9.5],[-18.5,-3],[18,-4]].forEach(([x,z],i)=>palms.push(palm(x,z,3.6+(i%3)*.5)));
 
 /* ---------- people ---------- */
-const SKIN=['#c99a75','#b98563','#d8ab86','#a87553','#e1b996','#8f6448'];
-function patternTex(kind){
-  return canvasTex(128,128,(g,W,H)=>{
-    g.fillStyle='#f7f5f0';g.fillRect(0,0,W,H);
-    if(kind==='red'){g.strokeStyle='#c42f2f';g.lineWidth=4;for(let i=-W;i<W*2;i+=16){g.beginPath();g.moveTo(i,0);g.lineTo(i+H,H);g.stroke();g.beginPath();g.moveTo(i,H);g.lineTo(i+H,0);g.stroke();}}
-    else{g.strokeStyle='rgba(0,0,0,.05)';g.lineWidth=2;for(let i=0;i<W;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,H);g.stroke();}}
-  });
-}
-const TEX={red:patternTex('red'),white:patternTex('white')};
-TEX.red.wrapS=TEX.red.wrapT=THREE.RepeatWrapping;TEX.red.repeat.set(2,2);
-const capGeo=new THREE.SphereGeometry(.29,28,18,PI/2+1.0,2*PI-2.0,0,PI*.72);
-const hijabGeo=new THREE.SphereGeometry(.285,28,18,PI/2+.9,2*PI-1.8,0,PI*.8);
+const SKIN=['#b07c5a','#c99572','#a06d4c','#d3a17d','#b6835f','#9a6646','#c4906b','#8f5e40','#d8ab88'];
+const shmaghTex=canvasTex(64,64,g=>{g.fillStyle='#f3efe6';g.fillRect(0,0,64,64);g.fillStyle='#b8252f';for(let y=0;y<64;y+=8)for(let x=0;x<64;x+=8){if(((x+y)/8)%2===0)g.fillRect(x+1,y+1,6,6);else g.fillRect(x+3,y+3,2,2);}});
+shmaghTex.magFilter=THREE.NearestFilter;shmaghTex.wrapS=shmaghTex.wrapT=THREE.RepeatWrapping;
+const CYg=(rt,rb,h,seg=18,open=false,ts=0,tl=2*PI)=>new THREE.CylinderGeometry(rt,rb,h,seg,1,open,ts,tl);
+const SPg=(r,ws=24,hs=16,ps=0,pl=2*PI,ts=0,tl=PI)=>new THREE.SphereGeometry(r,ws,hs,ps,pl,ts,tl);
+const BXg=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+function shade(hex,amt){return '#'+new THREE.Color(hex).lerp(new THREE.Color(amt<0?0x000000:0xffffff),Math.abs(amt)).getHexString();}
 
+/* rounded figures; looks: mashkhas (shemagh worn مشخّص), thobe (shemagh hanging), niqab, suit, casual */
 function buildPerson(o){
-  const root=new THREE.Group();const body=new THREE.Group();root.add(body);
-  const skin=M(o.skin||SKIN[0]);
-  const P={root,body,legs:[],arms:[]};
-  const robe=!!o.robe;
-  if(!robe){for(const sx of [-1,1]){const hip=new THREE.Group();hip.position.set(sx*.13,.62,0);body.add(hip);
-      const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.11,.32,4,10),M(o.legs));leg.position.y=-.28;leg.castShadow=true;hip.add(leg);
-      const shoe=new THREE.Mesh(new THREE.SphereGeometry(.12,12,8),M(o.shoe||'#2b2523'));shoe.scale.set(1,.6,1.4);shoe.position.set(0,-.55,.04);shoe.castShadow=true;hip.add(shoe);P.legs.push(hip);}
-    const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.29,.34,6,16),M(o.top));torso.position.y=.95;torso.castShadow=true;body.add(torso);
-    if(o.suit){const sh=new THREE.Mesh(new THREE.ConeGeometry(.12,.3,3),M('#ffffff'));sh.rotation.x=PI;sh.position.set(0,1.12,.25);sh.scale.z=.35;body.add(sh);
-      const tie=box(.05,.24,.02,M(o.tie||'#b8483b'),0,1.05,.29,body);tie.castShadow=false;}
-    if(o.belt){box(.6,.06,.6,M('#3b2f28'),0,.66,0,body).castShadow=false;}
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);root.scale.setScalar(1.22);
+  const ad=(geo,m,x,y,z,p=body,sh=true)=>{const mesh=new THREE.Mesh(geo,typeof m==='string'?M(m):m);mesh.position.set(x,y,z);if(sh)mesh.castShadow=true;p.add(mesh);return mesh;};
+  const look=o.look,isThobe=look==='thobe'||look==='mashkhas',isNiqab=look==='niqab';
+  const skin=M(o.skin),robe=isThobe?M('#efede7'):isNiqab?M('#18191e'):null,top=robe||M(o.color);
+  const jeans=o.jeans||'#35507a';
+  const legM=robe||(look==='casual'?M(jeans):M(shade(o.color,-.3)));
+  const shoe=M(isThobe?'#5a3e2a':look==='casual'?'#e4e2dc':'#15171c');
+  const legs=[],arms=[];
+  for(const s of [-1,1]){const p=new THREE.Group();p.position.set(.085*s,.45,0);ad(CYg(.068,.06,.4,14),legM,0,-.2,0,p);
+    if(look==='casual')ad(CYg(.07,.07,.02,14),M(shade(jeans,-.2)),0,-.08,0,p,false);
+    const sh=ad(SPg(.075,16,10),shoe,0,-.41,.035,p);sh.scale.set(1,.55,1.45);body.add(p);legs.push(p);}
+  ad(CYg(.155,.17,.5,22),top,0,.72,0);
+  const sho=ad(SPg(.17,22,12,0,2*PI,0,PI/2),top,0,.95,0);sho.scale.set(1.12,.42,.9);
+  ad(CYg(.17,.16,.08,22),look==='casual'?legM:top,0,.47,0);
+  if(look==='casual')ad(CYg(.172,.172,.03,22),'#3a2a1c',0,.5,0,body,false);
+  ad(CYg(.055,.06,.08,12),skin,0,1.0,0);
+  if(robe)ad(CYg(.17,.235,.42,22),robe,0,.26,0);
+  if(look==='suit'){ad(CYg(.06,.09,.2,3,false,PI*.67,PI*.66),'#ecebe6',0,.87,.06,body,false);ad(BXg(.045,.2,.02),M(o.tie||shade(o.color,-.6)),0,.8,.165,body,false);
+    for(const sx of [-1,1]){const l=ad(BXg(.05,.22,.015),M(shade(o.color,-.15)),.06*sx,.84,.16,body,false);l.rotation.z=.35*sx;}}
+  if(look==='casual'){const nk=ad(new THREE.TorusGeometry(.06,.012,6,18),M(shade(o.color,-.25)),0,.975,.02,body,false);nk.rotation.x=PI/2;}
+  if(isThobe){ad(BXg(.025,.2,.012),'#d9d6cd',0,.85,.164,body,false);const bd=ad(CYg(.035,.035,.012,16),M(o.color),.09,.86,.165,body,false);bd.rotation.x=PI/2;}
+  for(const s of [-1,1]){const p=new THREE.Group();p.position.set(.215*s,.93,0);
+    if(look==='casual'){ad(CYg(.06,.058,.14,14),top,0,-.07,0,p);ad(CYg(.048,.045,.24,14),skin,0,-.25,0,p);}
+    else ad(CYg(.055,.05,.36,14),top,0,-.18,0,p);
+    if(isNiqab)ad(CYg(.053,.053,.04,14),M(o.color),0,-.34,0,p,false);
+    ad(SPg(.05,14,10),skin,0,-.4,0,p);body.add(p);arms.push(p);}
+  const head=new THREE.Group();head.position.y=1.19;body.add(head);
+  ad(SPg(.19,28,20),skin,0,0,0,head);
+  const eyeM=M('#15181f');const eyes=[-1,1].map(sx=>ad(SPg(.024,10,8),eyeM,.068*sx,0,.172,head,false));
+  const browC=isThobe?'#1d1612':(o.hair||'#1d1712');
+  if(!isNiqab){const nose=ad(SPg(.028,10,8),skin,0,-.04,.185,head,false);nose.scale.set(.8,1,.8);
+    for(const sx of [-1,1]){const br=ad(BXg(.05,.012,.012),browC,.068*sx,.05,.18,head,false);br.rotation.z=-.15*sx;}}
+  if(isThobe){
+    const sh=new THREE.MeshLambertMaterial({map:shmaghTex,side:THREE.DoubleSide});
+    ad(SPg(.205,28,14,0,2*PI,0,PI/2),sh,0,.025,0,head);
+    if(o.beard!==false){const beard=ad(SPg(.13,20,12),'#1d1612',0,-.105,.1,head,false);beard.scale.set(1.15,.62,.75);
+      const must=ad(SPg(.05,12,8),'#1d1612',0,-.06,.175,head,false);must.scale.set(1.3,.35,.5);}
+    const ag=M('#121316');
+    if(look==='mashkhas'){
+      // تشخيص: side flaps thrown up over the head, sharp peak at the front, shorter back drape
+      ad(CYg(.205,.25,.3,26,true,PI*.38,PI*1.24),sh,0,-.09,-.005,head);
+      for(const sx of [-1,1]){const f=ad(SPg(.11,16,10),sh,.12*sx,.18,-.02,head);f.scale.set(.9,.5,1.5);f.rotation.z=-.5*sx;}
+      const pk=ad(new THREE.ConeGeometry(.07,.14,4),sh,0,.21,.15,head);pk.rotation.x=.9;pk.scale.set(1.6,1,.5);
+    }else{
+      // عادي: drapes down the back and both front flaps hang over the chest
+      ad(CYg(.205,.27,.44,26,true,PI*.32,PI*1.36),sh,0,-.15,-.005,head);
+      for(const sx of [-1,1]){const f=ad(BXg(.09,.34,.03),sh,.15*sx,.92,.13);f.rotation.x=-.12;f.rotation.z=.08*sx;}
+    }
+    for(const yy of [.14,.17]){const r=ad(new THREE.TorusGeometry(.168,.017,8,32),ag,0,yy,0,head);r.rotation.x=PI/2;}
+  }else if(isNiqab){
+    const b2=new THREE.MeshLambertMaterial({color:0x18191e,side:THREE.DoubleSide});
+    ad(SPg(.205,28,14,0,2*PI,0,PI*.44),b2,0,0,0,head);ad(SPg(.2,28,14,0,2*PI,PI*.56,PI*.44),b2,0,0,0,head);
+    ad(CYg(.205,.25,.4,26,true,PI*.3,PI*1.4),b2,0,-.14,-.005,head);ad(CYg(.24,.25,.06,26),b2,0,.94,0);
+    ad(CYg(.236,.236,.03,22),M(o.color),0,.07,0,body,false);
   }else{
-    const r=new THREE.Mesh(new THREE.CapsuleGeometry(.31,.74,6,16),M(o.robe));r.position.y=.7;r.castShadow=true;body.add(r);
-    const hem=cyl(.3,.33,.12,M(o.robe),0,.08,0,body);
-    for(const sx of [-1,1]){const shoe=new THREE.Mesh(new THREE.SphereGeometry(.11,12,8),M(o.shoe||'#3a2e28'));shoe.scale.set(1,.55,1.4);shoe.position.set(sx*.12,.05,.14);body.add(shoe);P.legs.push(shoe);}
+    const hr=M(o.hair||'#1d1712');const cap=ad(SPg(.2,28,14,0,2*PI,0,PI*.5),hr,0,.01,-.012,head);cap.rotation.x=-.28;
+    const back=ad(SPg(.192,24,12,PI*.6,PI*.8,PI*.45,PI*.25),hr,0,0,0,head);back.rotation.y=PI;
   }
-  for(const sx of [-1,1]){const sh=new THREE.Group();sh.position.set(sx*.37,1.22,0);body.add(sh);
-    const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.085,.34,4,10),M(o.sleeve||o.robe||o.top));arm.position.y=-.24;arm.castShadow=true;sh.add(arm);
-    const hand=new THREE.Mesh(new THREE.SphereGeometry(.085,12,8),o.gloves?M(o.robe):skin);hand.position.y=-.5;sh.add(hand);P.arms.push(sh);}
-  const head=new THREE.Group();head.position.y=1.66;body.add(head);P.head=head;
-  const hd=new THREE.Mesh(new THREE.SphereGeometry(.26,24,18),o.niqab?M('#141416'):skin);hd.castShadow=true;head.add(hd);
-  const eyeM=M('#1b1716');
-  if(o.niqab){const slit=box(.26,.07,.04,skin,0,.05,.245,head);slit.castShadow=false;for(const sx of [-1,1])sph(.028,eyeM,sx*.075,.05,.268,head);}
-  else{for(const sx of [-1,1])sph(.03,eyeM,sx*.085,.04,.235,head);
-    const m=new THREE.Mesh(new THREE.TorusGeometry(.05,.012,6,12,PI),M('#7a3b2e'));m.position.set(0,-.07,.235);m.rotation.z=PI;head.add(m);}
-  if(o.beard){const b=new THREE.Mesh(new THREE.SphereGeometry(.2,16,10,0,2*PI,PI*.55,PI*.45),M('#2a211c'));b.position.set(0,.02,.04);b.scale.set(1.15,1,1.05);head.add(b);}
-  if(o.hair){const h=new THREE.Mesh(new THREE.SphereGeometry(.275,20,12,0,2*PI,0,PI*.48),M(o.hair));h.position.y=.02;h.rotation.x=-.18;head.add(h);}
-  if(o.head==='red'||o.head==='white'){
-    const mt=new THREE.MeshStandardMaterial({map:o.head==='red'?TEX.red:TEX.white,roughness:.85,side:THREE.DoubleSide});
-    const cap=new THREE.Mesh(capGeo,mt);cap.position.y=.03;cap.castShadow=true;head.add(cap);
-    const back=new THREE.Mesh(new THREE.CylinderGeometry(.27,.36,.5,20,1,true,PI/2+1.1,2*PI-2.2),mt);back.position.y=-.3;head.add(back);
-    for(const [y,r] of [[.16,.255],[.12,.262]]){const ig=new THREE.Mesh(new THREE.TorusGeometry(r,.028,8,24),M('#141414'));ig.rotation.x=PI/2;ig.position.y=y;head.add(ig);}
-  }
-  if(o.head==='hijab'){const mt=M(o.hcol||'#2c3550',{side:THREE.DoubleSide});const cap=new THREE.Mesh(hijabGeo,mt);cap.position.y=.02;head.add(cap);
-    const nk=new THREE.Mesh(new THREE.CylinderGeometry(.24,.33,.36,20),mt);nk.position.y=-.3;head.add(nk);}
-  if(o.niqab){const cap=new THREE.Mesh(new THREE.SphereGeometry(.285,24,16,0,2*PI,0,PI*.6),M('#101012'));cap.position.y=.02;head.add(cap);
-    const nk=new THREE.Mesh(new THREE.CylinderGeometry(.25,.36,.4,20),M('#101012'));nk.position.y=-.3;head.add(nk);}
-  if(o.headset){const hs=new THREE.Mesh(new THREE.TorusGeometry(.29,.025,8,20,PI),MAT.dark);hs.position.y=.02;head.add(hs);sph(.07,MAT.dark,-.29,0,0,head);sph(.07,MAT.dark,.29,0,0,head);
-    const mic=box(.02,.02,.2,MAT.dark,-.24,-.1,.12,head);mic.rotation.y=-.5;}
-  // carried items
-  const folder=new THREE.Group();const fm=box(.28,.36,.05,M('#e2b65a'),0,0,0,folder);const fp=box(.24,.3,.055,MAT.paper,0,.01,0,folder);fp.visible=false;
-  folder.position.set(0,-.55,.14);folder.rotation.x=-.9;P.arms[1].add(folder);folder.visible=false;P.folder=folder;P.folderMain=fm;P.folderPdf=fp;
-  const cup=cyl(.05,.04,.11,MAT.white,0,-.58,.06,P.arms[0],10);cup.visible=false;P.cup=cup;
-  root.traverse(m=>{if(m.isMesh)m.castShadow=true;});
-  return P;
+  const headFree=look==='suit'||look==='casual',a=o.acc;
+  if(a==='hat'&&headFree){ad(CYg(.28,.28,.025,28),'#262b35',0,.16,0,head);ad(CYg(.165,.18,.15,28),'#262b35',0,.24,0,head);ad(CYg(.182,.182,.035,28),'#8a2f2f',0,.185,0,head);}
+  if(a==='cap'&&headFree){ad(SPg(.205,24,10,0,2*PI,0,PI/2),'#2e5e24',0,.04,0,head);const v=ad(CYg(.15,.15,.02,20,false,-PI/2,PI),'#2e5e24',0,.06,.12,head);v.rotation.y=PI/2;}
+  if(a==='glasses'&&!isNiqab){const gm=M('#14171d');for(const sx of [-1,1])ad(new THREE.TorusGeometry(.038,.008,8,20),gm,.068*sx,0,.185,head,false);ad(BXg(.05,.01,.01),gm,0,.01,.19,head,false);}
+  if(a==='headset'&&headFree){ad(new THREE.TorusGeometry(.2,.016,8,24,PI),'#22262e',0,.01,0,head);for(const sx of [-1,1])ad(CYg(.05,.05,.04,16),'#22262e',.2*sx,-.01,0,head).rotation.z=PI/2;const mic=ad(BXg(.012,.012,.16),'#22262e',-.17,-.09,.09,head,false);mic.rotation.y=-.5;}
+  if(a==='band'&&headFree)ad(CYg(.198,.198,.045,28),'#f2efe8',0,.08,0,head);
+  if(a==='pencil'){const pm=ad(CYg(.016,.016,.24,8),'#d23b3b',0,-.43,.07,arms[0]);pm.rotation.x=PI/2;}
+  if(a==='magnifier'){const r=ad(new THREE.TorusGeometry(.07,.015,8,20),'#c9ccd2',0,-.53,.05,arms[0]);r.rotation.y=PI/2;ad(CYg(.014,.014,.12,8),'#3a2a1c',0,-.43,0,arms[0]);}
+  if(a==='clipboard'){ad(BXg(.18,.24,.02),'#7a5a3a',0,-.48,.08,arms[0]);ad(BXg(.14,.17,.005),'#ece7dc',0,-.49,.092,arms[0],false);}
+  // carried file / printed PDF in the right hand, coffee cup in the left
+  const folder=new THREE.Group();const fm=ad(BXg(.22,.28,.035),'#e2b65a',0,0,0,folder);
+  const fp=new THREE.Group();folder.add(fp);ad(BXg(.2,.26,.04),'#f4f1e8',0,0,0,fp);ad(BXg(.2,.05,.042),'#b8252f',0,.1,0,fp,false);fp.visible=false;
+  folder.position.set(0,-.42,.1);folder.rotation.x=-1.0;arms[1].add(folder);folder.visible=false;
+  const cup=ad(CYg(.045,.038,.1,12),'#e8e2d6',0,-.46,.05,arms[0]);cup.visible=false;
+  return {root,body,legs,arms,head,eyes,folder,folderMain:fm,folderPdf:fp,cup};
 }
-
 const OUT={
-  thobeRed:(skin,beard=true)=>({robe:'#f4f2ec',head:'red',skin,beard}),
-  thobeWhite:(skin,beard=true)=>({robe:'#f4f2ec',head:'white',skin,beard}),
-  niqab:()=>({robe:'#17171a',niqab:true,gloves:true,skin:'#c99a75'}),
-  abaya:(skin,hcol)=>({robe:'#1d1d22',head:'hijab',hcol,skin}),
-  suit:(c,skin,tie)=>({top:c,legs:c,sleeve:c,suit:true,tie,hair:'#2b211c',skin,shoe:'#1a1514'}),
-  jeans:(c,skin,hair='#2a1f18')=>({top:c,legs:'#3f5f8f',hair,skin,shoe:'#f2f0ea',belt:true}),
-  casual:(c,l,skin,hair='#2a1f18')=>({top:c,legs:l,hair,skin}),
+  mashkhas:(skin,color,acc)=>({look:'mashkhas',skin,color,acc}),
+  thobe:(skin,color,acc)=>({look:'thobe',skin,color,acc}),
+  niqab:color=>({look:'niqab',color,skin:'#c99a7a'}),
+  suit:(color,skin,hair,acc,tie)=>({look:'suit',color,skin,hair,acc,tie}),
+  casual:(color,skin,hair,acc,jeans)=>({look:'casual',color,skin,hair,acc,jeans}),
 };
 
 const agents=[];const A={};
@@ -682,11 +703,16 @@ class Agent{
     const k=this.statusKind;const t=performance.now()/1000;
     if(moving){this.walkPh+=dt*8.5;const a=Math.sin(this.walkPh);P.legs.forEach((l,i)=>{if(l.isGroup){l.rotation.x=(i?a:-a)*.55;}else l.position.z=.14+(i?a:-a)*.12;});
       P.arms[0].rotation.x=a*.5;P.arms[1].rotation.x=this.carry?-.85:-a*.5;P.body.position.y=Math.abs(Math.cos(this.walkPh))*.05;}
-    else{P.body.position.y=this.sitting?-.24:Math.sin(t*1.6+this.walkPh)*.008;
+    else{P.body.position.y=this.sitting?-.13:Math.sin(t*1.6+this.walkPh)*.008;
       P.legs.forEach(l=>{if(l.isGroup)l.rotation.x=this.sitting?-PI/2:0;});
       const working=k==='work';
       P.arms[0].rotation.x=this.cupOn?-1.25:working?-.75+Math.sin(t*14+this.walkPh)*.08:(k==='meet'?-.2:0);
       P.arms[1].rotation.x=this.carry?-.85:working?-.75+Math.cos(t*13+this.walkPh)*.08:0;}
+    const blink=((t+this.walkPh*3)%4.3)<.12;P.eyes.forEach(e=>e.scale.y=blink?.15:1);
+    const calm=k==='rest'||k==='idle'||k==='wait'||k==='done';
+    P.head.rotation.y=moving?0:Math.sin(t*.6+this.walkPh*2)*(calm?.35:.08);
+    P.head.rotation.x+=((!moving&&k==='work'?.22:moving?-.04:0)-P.head.rotation.x)*Math.min(1,dt*6);
+    if(!moving&&k==='meet')P.head.rotation.y=Math.sin(t*.9+this.walkPh)*.2;
     P.folder.visible=!!this.carry;P.folderMain.visible=this.carry==='file';P.folderPdf.visible=this.carry==='pdf';P.cup.visible=this.cupOn&&!moving;
   }
 }
@@ -708,19 +734,23 @@ function route(ag,to){
 
 /* ---------- cast ---------- */
 const DEPTS=['fees','lic','inv','tob','lod','pen','oth'].map(id=>ROOM[id]);
-new Agent('faisal','Faisal',OUT.thobeRed('#c48f68'),ROOM.fs.seat);
-new Agent('angel','Angel',Object.assign(OUT.casual('#1f7a7a','#3b3f46','#c99a75','#3a2a20'),{headset:true}),S.angel);
-new Agent('isak','Isak',OUT.suit('#2f6db5','#e1b996','#f0c040'),S.isak);
-new Agent('sara','Sara',OUT.niqab(),S.sara);
-new Agent('torres','Torres',OUT.jeans('#d9534f','#c99a75'),S.torres);
-new Agent('gerrard','Gerrard',OUT.jeans('#2e9e6b','#e1b996','#8a5a2b'),S.gerrard);
-new Agent('vandaik','Vandaik',OUT.suit('#7a3b8f','#d8ab86','#e8e2d0'),ROOM.vd.seat);
-new Agent('salah','Salah',OUT.thobeWhite('#b98563'),ROOM.sl.seat);
-new Agent('aziz','Aziz',OUT.thobeRed('#a87553'),ROOM.az.seat);
-new Agent('neves','Neves',OUT.jeans('#f0a92b','#d8ab86','#1d1a17'),ROOM.prn.seat);
-const deptOutfits=[s=>OUT.thobeWhite(s),s=>OUT.casual('#5d7fa6','#2f3a4a',s),s=>OUT.abaya(s,'#3d4f7a'),s=>OUT.thobeRed(s,false),s=>OUT.casual('#9a6b4a','#e6dfcf',s),s=>OUT.abaya(s,'#6b3d4f'),s=>OUT.casual('#4d8f6a','#2d2d2d',s,'#5a3b22')];
+new Agent('faisal','Faisal',OUT.mashkhas('#b98563','#c48a2c'),ROOM.fs.seat);
+new Agent('angel','Angel',OUT.casual('#8a6cf0','#c99a7a','#3a2a20','headset','#3b3f46'),S.angel);
+new Agent('isak','Isak',OUT.suit('#2f6fd6','#8a5c3f','#1d1712','hat'),S.isak);
+new Agent('sara','Sara',OUT.niqab('#cf4f8b'),S.sara);
+new Agent('torres','Torres',OUT.casual('#d4652a','#d6a684','#3a2618','glasses'),S.torres);
+new Agent('gerrard','Gerrard',OUT.casual('#b8383d','#e2b494','#6b4a2e','band'),S.gerrard);
+new Agent('vandaik','Vandaik',OUT.suit('#1c9c8f','#6e4a33','#141010','clipboard'),ROOM.vd.seat);
+new Agent('salah','Salah',OUT.thobe('#a8714f','#2f9e54','pencil'),ROOM.sl.seat);
+new Agent('aziz','Aziz',OUT.mashkhas('#c08a66','#7d5bd6','magnifier'),ROOM.az.seat);
+new Agent('neves','Neves',OUT.casual('#5d7f95','#d1a07c','#2a1c14','cap'),ROOM.prn.seat);
+const LOOKS=['mashkhas','casual','thobe','suit','mashkhas','niqab','thobe','casual','suit','mashkhas','thobe','casual'];
+const ACCS=['glasses','pencil','clipboard','magnifier','hat','band','headset','cap',''];
+const HAIRS=['#1d1712','#2c2018','#3a2618','#191512','#6b4a2e'];
+function deptOutfit(r,k,j){const look=LOOKS[j%LOOKS.length],color=mix(DCOL[r.id],k%2?'#ffffff':'#000000',[0,.22,.22,.38][k]),skin=SKIN[j%SKIN.length],acc=ACCS[j%ACCS.length];
+  return look==='niqab'?OUT.niqab(color):look==='suit'||look==='casual'?OUT[look](color,skin,HAIRS[j%HAIRS.length],acc):OUT[look](skin,color,acc);}
 let oi=0;
-DEPTS.forEach(r=>{r.members=[];r.seats.forEach((seat,i)=>{const ag=new Agent(r.id+i,`${r.name.split(' ')[0]} ${i+1}`,deptOutfits[oi%deptOutfits.length](SKIN[(oi*5)%SKIN.length]),seat);oi++;ag.seat=seat;ag.dept=r;ag.isLead=i===0;r.members.push(ag);});});
+DEPTS.forEach(r=>{r.members=[];r.seats.forEach((seat,i)=>{const ag=new Agent(r.id+i,`${r.name.split(' ')[0]} ${i+1}`,deptOutfit(r,i,oi),seat);oi++;ag.seat=seat;ag.dept=r;ag.isLead=i===0;r.members.push(ag);});});
 ['faisal','angel','isak','sara','torres','gerrard','vandaik','salah','aziz','neves'].forEach(id=>A[id].seat=A[id].home);
 
 /* rest spot allocation */
@@ -996,7 +1026,7 @@ function frame(now){
   // labels
   const W=innerWidth,H=innerHeight;
   agents.forEach(a=>{const ff=a.floatFloor();const onF=view===null||Math.abs(ff-view)<.3;let show=onF;a.P.root.visible=onF;
-    if(show){v3.set(a.P.root.position.x,a.P.root.position.y+(a.sitting?1.8:2.1),a.P.root.position.z).project(camera);if(v3.z>1)show=false;}
+    if(show){v3.set(a.P.root.position.x,a.P.root.position.y+(a.sitting?1.75:1.95),a.P.root.position.z).project(camera);if(v3.z>1)show=false;}
     if(!show){if(a.el.style.display!=='none')a.el.style.display='none';return;}
     a.el.style.display='';a.el.classList.toggle('small',view===null&&(a.statusKind==='rest'||a.statusKind==='idle'||a.statusKind==='wait'));
     a.el.style.transform=`translate(${(v3.x*.5+.5)*W}px,${(-v3.y*.5+.5)*H}px) translate(-50%,-100%)`;});

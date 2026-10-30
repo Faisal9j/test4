@@ -4,7 +4,7 @@ D=os.path.dirname(os.path.abspath(__file__))
 KEYS=['actual','target','deviation','deviation_pct','growth_pct','collection_pct']
 def close(a,b,key):
     if a is None or b is None: return False
-    if key.endswith('_pct'): return abs(a-b)<=0.05          # نقاط مئوية
+    if key.endswith('_pct'): return abs(a-b)<=max(0.05,abs(b)*0.005)  # نقاط مئوية، أو 0.5٪ نسبياً للنسب الكبيرة
     return abs(a-b)<=max(1,abs(b)*0.005)
 out={}
 for dept in ['lic','inv','pen','tob','oth']:

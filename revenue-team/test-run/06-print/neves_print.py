@@ -15,6 +15,7 @@ for dp in d['departments']:
         rows+=f'''<tr class="{'first' if i==0 else ''}"><td>{e(dp['dept']) if i==0 else ''}</td><td>{e(r['org'])}</td><td>{m(r['actual'])}</td><td>{m(r['target'])}</td><td class="{'neg' if r['deviation']<0 else 'pos'}">{m(r['deviation'])}</td><td>{pct(r['deviation_pct'])}</td><td>{r['collection_pct']:.1f}٪</td><td>{pct(r['growth_pct'])}</td></tr>'''
 finds=''.join(f'<li>{e(f)}</li>' for f in d['findings'])
 flags=''.join(f'<li>{e(f)}</li>' for f in d['data_flags'])
+decs="".join(f"<li>{e(x)}</li>" for x in d.get("decisions",[]))
 issue=sys.argv[1] if len(sys.argv)>1 else 'تجريبي'
 today=datetime.date.today().isoformat()
 doc=f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
@@ -45,7 +46,7 @@ th{{background:#1c1c1c;color:#fff;font-weight:600;padding:4px 5px}} td{{padding:
 td:first-child{{text-align:right;font-weight:600}} tr.first td{{border-top:1px solid #888}}
 .pos{{color:#1f6f5c}} .neg{{color:#b23b3b}}
 .chain{{margin-top:10px;font-size:8.5pt;color:#444;border-top:1px solid #1c1c1c;padding-top:6px}}
-.pb{{page-break-before:always}}
+.pb{{page-break-before:always}} .dn{{font-size:9pt;columns:2;column-gap:18px}} .dn li{{break-inside:avoid}}
 </style></head><body>
 <div class="mast"><img src="data:image/png;base64,{logo}"><h1>تقرير الإيرادات</h1><div class="meta">العدد: {e(issue)}<br>{today}<br>مسودة بانتظار اعتماد رئيس التحرير</div></div>
 <div class="strap"><span>فريق تخطيط ومراقبة الإيرادات</span><span>المصدر: {e(d['source'])}</span><span>المبالغ بالمليون ريال</span></div>
@@ -58,11 +59,12 @@ td:first-child{{text-align:right;font-weight:600}} tr.first td{{border-top:1px s
 <div class="cols">
 <section><h2>أبرز النتائج</h2><ol>{finds}</ol></section>
 <section><h2>الانحراف حسب نوع الإيراد</h2>{bars}<p class="note">الأخضر فوق المستهدف، والأحمر دونه.</p>
-<div class="flags"><h2>قرارات مطلوبة منك</h2><ul>{flags}</ul></div></section></div>
+<div class="flags"><h2>قرارات مطلوبة منك</h2><ol>{decs}</ol></div></section></div>
 <div class="pb"></div>
 <h2>تفصيل الأقسام حسب الجهة</h2>
 <table><thead><tr><th>القسم</th><th>الجهة</th><th>الفعلي</th><th>المستهدف</th><th>الانحراف</th><th>نسبته</th><th>التحصيل</th><th>النمو</th></tr></thead><tbody>{rows}</tbody></table>
-<div class="chain"><b>سلسلة الاعتماد:</b> Angel (فحص الملف: 30 مطابقة من 30) ← قادة الأقسام ({e(d['approvals']['leaders'])}) ← المحللون ← Vandaik ({e(d['approvals']['vandaik'])}) ← Salah (اعتمد بعد ترجيع واحد) ← Aziz ← Neves ← بانتظار Faisal.<br>
+<h2 style="margin-top:14px">ملاحظات على البيانات</h2><ul class="dn">{flags}</ul>
+<div class="chain"><b>سلسلة الاعتماد:</b> Angel (فحص الملف: 30 مطابقة من 30) ← قادة الأقسام ({e(d['approvals']['leaders'])}) ← المحللون ← Vandaik ({e(d['approvals']['vandaik'])}) ← Salah (اعتمد بعد ترجيع واحد) ← Aziz (اعتمد بعد ترجيع واحد) ← Neves ← بانتظار Faisal.<br>
 تعريفات: الانحراف = الفعلي − المستهدف · نسبته = الانحراف ÷ المستهدف · جوهري إذا تجاوز ±5٪ · "مؤشر" = تفسير بدون دليل مباشر.</div>
 </body></html>'''
 open(f'{R}/report.html','w').write(doc)

@@ -320,7 +320,7 @@ const floorY=f=>f*spacing;
 
 const R=(id,name,side,x0,x1,kind,extra={})=>Object.assign({id,name,side,x0,x1,kind,door:(x0+x1)/2,s:side==='N'?-1:1,cx:(x0+x1)/2},extra);
 const FLOORS=[
- {name:'الأرضي',num:'أ',desc:'غرفة التحكم · Angel',rooms:[R('ctrl','غرفة التحكم','N',-13,3,'ctrl'),R('srv','الخوادم','N',3,11,'servers'),R('lobby','الاستقبال','S',-13,11,'lobby')]},
+ {name:'الأرضي',num:'أ',desc:'غرفة التحكم · Angel وفريقه',rooms:[R('ang','مكتب Angel','N',-13,-7,'office',{glass:true}),R('ctrl','غرفة التحكم','N',-7,3,'ctrl'),R('srv','الخوادم','N',3,11,'servers'),R('lobby','الاستقبال','S',-13,11,'lobby')]},
  {name:'الدور الأول',num:'١',desc:'الرسوم · التراخيص · العقود',rooms:[R('fees','الرسوم','N',-13,-5,'dept'),R('lic','التراخيص','N',-5,3,'dept'),R('inv','العقود الاستثمارية','N',3,11,'dept'),R('trk1','لوحة المتابعة','S',-13,-5,'track'),R('lng1','الاستراحة','S',-5,3,'lounge'),R('cafe1','المقهى','S',3,11,'cafe')]},
  {name:'الدور الثاني',num:'٢',desc:'التبغ · الإيواء · الجزاءات · الأخرى',rooms:[R('tob','التبغ','N',-13,-7,'dept'),R('lod','الإيواء','N',-7,-1,'dept'),R('pen','الجزاءات والغرامات','N',-1,5,'dept'),R('oth','الإيرادات الأخرى','N',5,11,'dept'),R('trk2','لوحة المتابعة','S',-13,-5,'track'),R('lng2','الاستراحة','S',-5,3,'lounge'),R('cafe2','المقهى','S',3,11,'cafe')]},
  {name:'الدور الثالث',num:'٣',desc:'التحليل · المراجعة · التدقيق · الطباعة',rooms:[R('hall','قاعة التحليل والاجتماعات','N',-13,-2,'hall'),R('vd','مكتب Vandaik','N',-2,4,'office',{glass:true}),R('prn','المطبعة','N',4,11,'print'),R('sl','مكتب Salah','S',-13,-6,'office'),R('az','مكتب Aziz','S',-6,1,'office'),R('arc','الأرشيف','S',1,11,'archive')]},
@@ -391,7 +391,7 @@ function plant(parent,x,z,s=1){cyl(.2*s,.16*s,.4*s,MAT.pot,x,.2*s,z,parent);sph(
 function sofa(parent,x,z,w,rot,mat=MAT.sofa){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;parent.add(g);box(w,.4,.8,mat,0,.22,0,g);box(w,.5,.2,mat,0,.62,-.32,g);box(.18,.32,.8,mat,-w/2+.09,.5,0,g);box(.18,.32,.8,mat,w/2-.09,.5,0,g);return g;}
 function wallBoard(parent,x,z,w,h,rot,tex){const g=new THREE.Group();g.position.set(x,1.5,z);g.rotation.y=rot;parent.add(g);box(w+.12,h+.12,.06,MAT.dark,0,0,0,g);const p=plane(w,h,new THREE.MeshBasicMaterial({map:tex}),g);p.position.z=.035;return g;}
 
-function roomColor(r){return DCOL[r.id]||(r.kind==='hall'?'#2f6fd6':r.glass?'#1c9c8f':r.boss?'#c48a2c':r.id==='sl'?'#2f9e54':r.id==='az'?'#7d5bd6':null);}
+function roomColor(r){return DCOL[r.id]||(r.id==='ang'?'#8a6cf0':r.kind==='hall'?'#2f6fd6':r.glass?'#1c9c8f':r.boss?'#c48a2c':r.id==='sl'?'#2f9e54':r.id==='az'?'#7d5bd6':null);}
 function buildRoomFloor(g,r){
   const z0=r.s*CW,z1=r.s*DEP;const d=Math.abs(z1-z0),zc=(z0+z1)/2;
   const st=r.kind==='dept'?['carpet',mix(DCOL[r.id],'#161c28',.7)]:ROOMSTYLE[r.kind];
@@ -550,13 +550,11 @@ function buildServers(g,r){const s=r.s;const on=new THREE.MeshStandardMaterial({
   for(const d of [3.0,4.9])for(let i=0;i<6;i++){const x=r.x0+1+i*1.1;box(.9,2.0,.8,MAT.rack,x,1.0,s*d,g);for(let k=0;k<6;k++){const led=new THREE.Mesh(new THREE.BoxGeometry(.06,.04,.02),k%3===0?amb:on);led.position.set(x-.3+(k%3)*.12,.5+Math.floor(k/3)*.7+((i+k)%2)*.3,s*d-s*.41);g.add(led);animated.leds.push({m:led,on,off,ph:Math.random()*6});}}
   boards.grid=canvasTex(640,340,()=>{});wallBoard(g,r.cx,s*6.88,3.4,1.8,0,boards.grid).position.y=2.35;}
 function buildCtrl(g,r){
-  S.angel=spot(r,-5,-6.0,0,[[-6.3,-4.2],[-6.3,-6.0]]);desk(g,S.angel,2.0,.75,.82,3);
-  S.intake=spot(r,-10.5,-2.9,PI);desk(g,S.intake,1.6,.7,.8,1);
-  S.clean=spot(r,.4,-2.9,PI);desk(g,S.clean,1.6,.7,.8,2);
-  label('استلام الملفات',0,g,-10.5,-4.85);label('تنقية البيانات',0,g,.4,-4.85);
-  // file intake trays
-  for(let i=0;i<3;i++)box(.36,.08,.28,M(['#d8a43a','#2f6fb5','#3c8a5a'][i]),-11.1+i*.4,.84,-3.75,g);
-  const wf=canvasTex(1024,330,()=>{});boards.flow=wf;wallBoard(g,-10.2,-6.88,5,1.6,0,wf);
+  // three desks facing the wall screens: intake & cleaning, classification by account, entities & sectors
+  const st=[['recv',-5.3,'الاستلام والتنقية',1],['cls',-2,'التصنيف',2],['ent',1.3,'الجهات والقطاعات',2]];
+  for(const [id,x,name,n] of st){S[id]=spot(r,x,-3.3,PI);desk(g,S[id],1.6,.7,.8,n);S[id+'Visit']=spot(r,x+.95,-2.55,PI);label(name,0,g,x,-5.35,0,'rgba(190,176,240,.75)');}
+  for(let i=0;i<3;i++)box(.36,.08,.28,M(['#d8a43a','#2f6fb5','#3c8a5a'][i]),-5.9+i*.4,.84,-4.35,g);
+  const wf=canvasTex(1024,330,()=>{});boards.flow=wf;wallBoard(g,-4.6,-6.88,4.2,1.4,0,wf);
   const al=canvasTex(640,330,()=>{});boards.alerts=al;wallBoard(g,1.0,-6.88,3.2,1.6,0,al);
   plant(g,2.4,-2.0,.8);
 }
@@ -571,6 +569,7 @@ function buildMeet(g,r){
   for(let i=0;i<15;i++){const x=-8.4+i*1.06;S.meet.push(spot(r,x,2.55,0));}
   for(let i=0;i<15;i++){const x=-8.4+i*1.06;const ex=x<-1?-9.9:7.9;S.meet.push(spot(r,x,5.85,PI,[[ex,2.5],[ex,5.85]]));}
   S.meet.push(spot(r,8.0,4.2,-PI/2,[[8.0,2.5]]));
+  for(let i=0;i<6;i++)S.meet.push(spot(r,8.9+(i%2)*.8,3.0+Math.floor(i/2)*1.1,-PI/2,[[8.9+(i%2)*.8,2.5]]));
   plant(g,10.4,6.4);plant(g,10.4,2.0,.8);
 }
 
@@ -776,7 +775,11 @@ function route(ag,to){
 /* ---------- cast ---------- */
 const DEPTS=['fees','lic','inv','tob','lod','pen','oth'].map(id=>ROOM[id]);
 new Agent('faisal','Faisal',OUT.mashkhas('#b98563','#c48a2c'),ROOM.fs.seat);
-new Agent('angel','Angel',OUT.casual('#8a6cf0','#c99a7a','#3a2a20','headset','#3b3f46'),S.angel);
+S.angel=ROOM.ang.seat;
+new Agent('angel','Angel',OUT.suit('#8a6cf0','#c99a7a','#3a2a20','headset'),S.angel);
+new Agent('recv','المستلم',OUT.casual('#3d7fa8','#b6835f','#1d1712','headset'),S.recv);
+new Agent('cls','المصنّف',OUT.thobe('#9a6646','#8a6cf0','glasses'),S.cls);
+new Agent('ent','مسؤول الجهات',OUT.casual('#6b8f3d','#d3a17d','#2c2018','clipboard'),S.ent);
 new Agent('isak','Isak',OUT.suit('#2f6fd6','#8a5c3f','#1d1712','hat'),S.isak);
 new Agent('sara','Sara',OUT.niqab('#cf4f8b'),S.sara);
 new Agent('torres','Torres',OUT.casual('#d4652a','#d6a684','#3a2618','glasses'),S.torres);
@@ -822,7 +825,7 @@ function drawKpi(r){if(!r.kpiTex)return;const st=deptState[r.id]||'';const v=st.
   redraw(r.kpiTex,(g,W,H)=>{g.fillStyle='#0e1522';g.fillRect(0,0,W,H);g.fillStyle=DCOL[r.id];g.fillRect(0,0,W,8);
     ['الفعلي','المستهدف','الانحراف'].forEach((t,j)=>{const y=58+j*70;txt(g,t,W-24,y+4,34,'#c5d0df',600,'right');g.beginPath();g.arc(44,y,16,0,7);
       if(v===0){g.strokeStyle='#3a4a63';g.lineWidth=3;g.stroke();}else{g.fillStyle=v===1?'#5b8def':'#3cc58f';g.fill();}});});}
-const STAGES=[['Faisal','الطلب'],['Angel','الاستلام والتنقية'],['الأقسام السبعة','تحليل الأقسام'],['المحللون الأربعة','التحليل'],['Vandaik','المراجعة 3 من 4'],['Salah','تدقيق الأرقام'],['Aziz','تدقيق المنطق'],['Neves','طباعة PDF'],['Faisal','الاعتماد والنشر']];
+const STAGES=[['Faisal','الطلب'],['Angel وفريقه','الاستلام والتصنيف'],['الأقسام السبعة','تحليل الأقسام'],['المحللون الأربعة','التحليل'],['Vandaik','المراجعة 3 من 4'],['Salah','تدقيق الأرقام'],['Aziz','تدقيق المنطق'],['Neves','طباعة PDF'],['Faisal','الاعتماد والنشر']];
 let curStage=-1;let alertText='لا توجد تنبيهات';
 function drawFlow(){redraw(boards.flow,(g,W,H)=>{g.fillStyle='#10201c';g.fillRect(0,0,W,H);txt(g,'سير العمل',W-28,36,30,'#9fe3d3',700,'right');
   STAGES.forEach(([who,what],i)=>{const col=i%3,row=Math.floor(i/3);const x=W-28-col*330,y=88+row*80;const on=i===curStage,done=i<curStage;
@@ -922,10 +925,17 @@ async function runReport(){
   const F=A.faisal,Ag=A.angel;
   setStage(0);F.setStatus('يطلب التقرير','work');log('Faisal طلب تقرير الإيرادات');await wait(2.2);F.setStatus('ينتظر التقرير','wait');
   setStage(1);
-  scanned=0;drawGrid();await Ag.goTo(S.intake,'رايح يستلم الملفات');Ag.setStatus('يستلم الملفات ويعدّ الصفوف','work');await wait(3);
-  log('Angel استلم الملفات وسجّل عدد الصفوف والمجاميع');
-  await Ag.goTo(S.clean,'رايح للتنقية');Ag.setStatus('يشيل الأسماء والهويات','work');for(let i=0;i<6;i++){await wait(.5);scanned=Math.min(54,scanned+9);drawGrid();}
-  log('Angel شال الأسماء والهويات وربط ملفات الوزارة بالأمانة');
+  scanned=0;drawGrid();const Rc=A.recv,Cl=A.cls,En=A.ent;
+  Ag.setStatus('يوزّع المهام على فريقه','work');await wait(1);
+  Rc.setStatus('يستلم الملفات ويعدّ الصفوف','work');await wait(2.5);
+  Rc.setStatus('يشيل الأسماء والهويات','work');await wait(2);log('المستلم سجّل الصفوف والمجاميع وشال الأسماء والهويات');
+  await hand(Rc,Cl,'file',S.clsVisit);Rc.goTo(Rc.seat).then(()=>Rc.setStatus('متاح','idle'));
+  Cl.setStatus('يصنّف حسب رقم الحساب','work');await wait(3);log('المصنّف صنّف البنود على التبويبات وفصل المسدد عن سنوات سابقة، وغير المصنف رُفع لـ Angel');
+  await hand(Cl,En,'file',S.entVisit);Cl.goTo(Cl.seat).then(()=>Cl.setStatus('متاح','idle'));
+  En.setStatus('يوزّع على المدينة والبلديات والقطاعات','work');for(let i=0;i<6;i++){await wait(.5);scanned=Math.min(54,scanned+9);drawGrid();}
+  log('مسؤول الجهات وزّع البيانات على المدينة والبلديات والقطاعات');
+  await hand(En,Ag,'file',ROOM.ang.visit);En.goTo(En.seat).then(()=>En.setStatus('متاح','idle'));
+  Ag.setStatus('يراجع ويعتمد البيانات','work');await wait(2.5);log('Angel اعتمد البيانات: المجاميع مطابقة، ووزّعها على الأقسام','ok');
   Ag.carry='file';const runs=[];
   for(const r of DEPTS){await Ag.goTo(r.visit,`يوزّع على ${r.name}`);Ag.setStatus(`يسلّم ${r.name}`,'walk');await wait(.7);log(`Angel سلّم بيانات ${r.name}`);runs.push(deptRun(r));if(r===DEPTS[2])setStage(2);}
   Ag.carry=null;Ag.goTo(S.angel,'راجع لغرفة التحكم').then(()=>Ag.setStatus('يتابع السلسلة','idle'));
@@ -957,7 +967,7 @@ async function runMeeting(msg){
   if(busy)return;busy=true;updateButtons();meetMsg='';drawMeet();
   log('Faisal دعا الفريق لاجتماع في القاعة العامة');$('#pipeState').textContent='اجتماع';
   const order=[A.faisal,...agents.filter(a=>a!==A.faisal)];
-  await Promise.all(order.map(async (a,i)=>{await wait(i*.15);if(a.dept)freeRest(a);await a.goTo(S.meet[i],'رايح للاجتماع');a.setStatus(i===0?'يدير الاجتماع':'في الاجتماع','meet');}));
+  await Promise.all(order.map(async (a,i)=>{await wait(i*.15);if(a.dept)freeRest(a);await a.goTo(S.meet[i%S.meet.length],'رايح للاجتماع');a.setStatus(i===0?'يدير الاجتماع':'في الاجتماع','meet');}));
   meetMsg=msg;drawMeet();log(`رسالة Faisal: ${msg}`);await wait(9);
   log('انتهى الاجتماع، كل واحد راجع لمكانه');
   await Promise.all(order.map(async (a,i)=>{await wait((order.length-i)*.1);if(a.dept){const sp=takeRest(a);await a.goTo(sp,'راجع');a.setStatus(sp.kind==='cafe'?'في المقهى':'يرتاح','rest');}else{await a.goTo(a.seat,'راجع لمكتبه');a.setStatus(a===A.angel?'يراقب السلسلة':a===A.faisal?'في مكتبه':'متاح','idle');}}));

@@ -1275,13 +1275,29 @@ labelsEl.addEventListener('click',e=>{const el=e.target.closest('.lbl');if(!el)r
   mv.x=((e.clientX-r.left)/r.width)*2-1;mv.y=-((e.clientY-r.top)/r.height)*2+1;rc.setFromCamera(mv,camera);
   const hits=rc.intersectObjects(agents.map(a=>a.P.root),true);if(!hits.length)return;let o=hits[0].object;
   const ag=agents.find(a=>{let x=o;while(x){if(x===a.P.root)return true;x=x.parent;}return false;});if(ag)openWho(ag.id);});}
+
+/* ---------- 24h ambient life in live mode: idle members keep a daily routine ---------- */
+const DESK=['يراجع ملفات قسمه','يقرأ تقارير الأشهر السابقة','يرتّب بيانات الشهر الجاي','يتابع المديونية القائمة','يحدّث ملاحظاته','يراجع قواعد الكتابة','يطّلع على مؤشرات السوق'];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function realBusy(a){const m=STM[a.id];return a===A.faisal||a.amb||(m&&(m.kind==='work'||m.kind==='alert'))||(VID&&(a.id===VID))||inMeeting;}
+function restoreReal(a){const m=STM[a.id];if(m)a.setStatus(m.text,m.kind);else a.setStatus(pick(DESK),'idle');}
+async function ambientStep(){if(!LIVE||document.hidden)return;const pool=agents.filter(a=>!realBusy(a)&&a.seat);if(!pool.length)return;
+  const n=2+Math.floor(Math.random()*3);for(let i=0;i<n;i++){const a=pick(pool);if(a.amb)continue;a.amb=true;const r=Math.random();
+    try{
+      if(r<.35&&REST&&REST[a.home.f]&&REST[a.home.f].length){const sp=takeRest(a);await a.goTo(sp,'رايح يتقهوى');a.setStatus(sp.kind==='cafe'?'في المقهى':'استراحة قصيرة','rest');await wait(rand(25,60));freeRest(a);await a.goTo(a.seat,'راجع لمكتبه');}
+      else if(r<.6){const mates=agents.filter(b=>b!==a&&b.f===a.f&&b!==A.faisal&&b.seat);if(mates.length){const b=pick(mates);const sp=visitFor(b);if(sp){await a.goTo(sp,'رايح لـ '+b.name);a.setStatus('يتناقش مع '+b.name,'meet');await wait(rand(12,25));await a.goTo(a.seat,'راجع لمكتبه');}}}
+      else{if(a.spot!==a.seat)await a.goTo(a.seat);a.setStatus(pick(DESK),'idle');await wait(rand(30,70));}
+    }catch(e){}
+    if(STM[a.id]&&STM[a.id].kind==='work'){a.amb=false;continue;}restoreReal(a);a.amb=false;}}
+setInterval(()=>{ambientStep();},5000);
+window.__live=r=>enterLive(r);
 /* live run: statuses, handoffs and chat written by the team run */
 function visitFor(ag){if(!ag)return null;const r=ag.home.room;if(ag.dept)return ag.dept.visit;if(S[ag.id+'Visit'])return S[ag.id+'Visit'];if(r&&r.visit)return r.visit;if(r&&r.kind==='hall')return S.drop[0];return ag.home;}
 function enterLive(run){if(!LIVE){LIVE=true;waiters.length=0;busy=true;updateButtons();chatList.innerHTML='';
-    agents.forEach(a=>{if(a.dept)freeRest(a);a.carry=null;a.goTo(a.seat||a.home).then(()=>{});a.setStatus('بانتظار دوره','wait');});
+    agents.forEach(a=>{if(a.dept)freeRest(a);a.carry=null;a.goTo(a.seat||a.home).then(()=>{});a.setStatus(a===A.faisal?'في مكتبه':DESK[Math.floor(Math.random()*DESK.length)],'idle');});
     $('#chatMode').textContent='مباشر';$('#chatMode').classList.add('live');document.querySelector('.brand .sim').textContent='مباشر';}
   if(typeof run.stage==='number')setStage(run.stage,run.label||undefined);}
-function applyStatus(id,d){const a=A[id];if(!a||!d)return;const pv=STM[id];if(!pv||pv.text!==d.text||pv.kind!==d.kind)STM[id]={text:d.text,kind:d.kind,detail:d.detail||'',at:d.at||Date.now(),screen:d.screen||null};else{STM[id].detail=d.detail||STM[id].detail;STM[id].screen=d.screen||STM[id].screen;}a.setStatus(d.text||'',d.kind||'idle');if(WHO===id)renderWho();
+function applyStatus(id,d){const a=A[id];if(!a||!d)return;const pv=STM[id];if(!pv||pv.text!==d.text||pv.kind!==d.kind)STM[id]={text:d.text,kind:d.kind,detail:d.detail||'',at:d.at||Date.now(),screen:d.screen||null};else{STM[id].detail=d.detail||STM[id].detail;STM[id].screen=d.screen||STM[id].screen;}a.setStatus(d.text||'',d.kind||'idle');if(WHO===id)renderWho();if(d.kind==='work'||d.kind==='alert'){a.amb=false;}
   if(d.kind==='rest'&&a.dept){const sp=takeRest(a);a.goTo(sp);}else if(['work','done','wait','idle','alert'].includes(d.kind)&&a.spot!==a.seat){a.goTo(a.seat||a.home);}}
 function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;
   if(m.from==='faisal'&&m.kind==='inspect'){inspect(m.to);return;}

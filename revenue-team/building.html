@@ -26,6 +26,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);overflow:hi
 .lbl span[data-k="rest"]{--c:var(--rest)} .lbl span[data-k="meet"]{--c:var(--meet)}
 .lbl span[data-k="alert"]{--c:var(--bad)} .lbl span[data-k="done"]{--c:#7fd6c4}
 .lbl.small b{font-size:10px} .lbl.small span{display:none}
+.lbl i.mail{font-style:normal;font-size:11px;font-weight:700;color:#1a1408;background:var(--accent);padding:2px 8px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.35);animation:mailIn .5s ease-out}
+@keyframes mailIn{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.lbl i.mail{animation:none}}
 
 .ui{position:fixed;z-index:5}
 .card{background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
@@ -734,9 +737,10 @@ class Agent{
     this.home=home;this.spot=home;this.f=home.f;this.x=home.x;this.z=home.z;this.rot=home.rot;this.rotT=home.rot;
     this.steps=[];this.chain=Promise.resolve();this.resolve=null;this.walkPh=Math.random()*6;this.mode='idle';this.ride=null;this.carry=null;this.sitting=false;this.cupOn=false;
     this.lane=rand(-.25,.25);
-    this.el=document.createElement('div');this.el.className='lbl';this.el.innerHTML='<b></b><span></span>';this.el.firstChild.textContent=name;labelsEl.appendChild(this.el);
+    this.el=document.createElement('div');this.el.className='lbl';this.el.innerHTML='<i class="mail" hidden></i><b></b><span></span>';this.el.children[1].textContent=name;labelsEl.appendChild(this.el);
     this.setStatus('متاح','idle');agents.push(this);A[id]=this;
   }
+  showBadge(t,ms=5000){const m=this.el.firstChild;m.textContent=t;m.hidden=false;clearTimeout(this._bt);this._bt=setTimeout(()=>{m.hidden=true;},ms);}
   setStatus(t,k){this.statusText=t;this.statusKind=k;const sp=this.el.lastChild;sp.textContent=t;sp.dataset.k=k;}
   place(sp){this.spot=sp;this.f=sp.f;this.x=sp.x;this.z=sp.z;this.rot=this.rotT=sp.rot;this.sitting=!!sp.sit;}
   goTo(sp,status){return this.chain=this.chain.then(()=>new Promise(res=>{
@@ -969,7 +973,7 @@ async function runReport(){
   if(busy)return;busy=true;updateButtons();summaries=0;drawHall(0);clearInbox();alertText='لا توجد تنبيهات';drawAlerts();for(const k in returns)delete returns[k];
   DEPTS.forEach(d=>deptState[d.id]='بانتظار البيانات');[1,2].forEach(drawTrack);
   const F=A.faisal,Ag=A.angel;
-  setStage(0);F.setStatus('يطلب التقرير','work');log('Faisal طلب تقرير الإيرادات');await wait(2.2);F.setStatus('ينتظر التقرير','wait');
+  setStage(0);F.setStatus('يرسل الطلب بالإيميل','work');log('Faisal أرسل طلب التقرير بالإيميل لـ Angel');A.angel.showBadge('✉ إيميل من Faisal',6000);A.angel.setStatus('وصله طلب Faisal بالإيميل','work');await wait(2.2);F.setStatus('ينتظر التقرير','wait');
   setStage(1);
   scanned=0;drawGrid();const Rc=A.recv,Cl=A.cls,En=A.ent;
   Ag.setStatus('يوزّع المهام على فريقه','work');await wait(1);
@@ -1159,7 +1163,10 @@ function enterLive(run){if(!LIVE){LIVE=true;waiters.length=0;busy=true;updateBut
   if(typeof run.stage==='number')setStage(run.stage,run.label||undefined);}
 function applyStatus(id,d){const a=A[id];if(!a||!d)return;a.setStatus(d.text||'',d.kind||'idle');
   if(d.kind==='rest'&&a.dept){const sp=takeRest(a);a.goTo(sp);}else if(['work','done','wait','idle','alert'].includes(d.kind)&&a.spot!==a.seat){a.goTo(a.seat||a.home);}}
-function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;const sp=visitFor(b);if(!sp)return;
+function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;
+  if(m.from==='faisal'&&m.via!=='visit'){b.showBadge('✉ إيميل من Faisal',8000);return;}
+  if(m.via==='visit'||m.from==='faisal'){const sp=visitFor(a);if(!sp)return;b.goTo(sp).then(()=>{b.carry='file';return b.goTo(b.seat||b.home);}).then(()=>{b.carry=null;});return;}
+  if(m.via==='email'){b.showBadge('✉ إيميل من '+a.name,8000);return;}const sp=visitFor(b);if(!sp)return;
   a.carry=m.item||'file';a.goTo(sp).then(()=>{a.carry=null;return a.goTo(a.seat||a.home);});}
 (async()=>{try{
   const db=window.claude&&window.claude.use?await window.claude.use('db'):null;if(!db)return;

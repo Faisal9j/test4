@@ -15,6 +15,13 @@ from collections import defaultdict
 
 import openpyxl
 
+# Windows يطبع افتراضياً بترميز cp1252 اللي ما يدعم العربي (حتى في exe المبني بـ PyInstaller)
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
 REGION, CITY, MUNIS = 'منطقة الرياض', 'مدينة الرياض', 'بلديات المنطقة'
 UNCLASSIFIED = 'غير مصنف'

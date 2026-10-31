@@ -170,7 +170,7 @@ nav .live{color:var(--warn)!important;font-weight:600}
   footer.ui{flex-direction:column;gap:6px}
   .pipe{padding:8px 10px;gap:6px}
   .st{padding:5px 7px}
-  .acts{width:auto;flex-direction:row;flex-wrap:nowrap;align-items:center;padding:6px;gap:6px}
+  .acts{width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:6px;gap:6px}
   .acts .btn{flex:1;padding:8px 10px}
   .acts .speed{width:auto}
   .acts .speed>span{display:none}
@@ -240,6 +240,7 @@ nav .live{color:var(--warn)!important;font-weight:600}
   <div class="card acts">
     <button class="btn primary" id="btnReport" type="button">اطلب تقرير</button>
     <button class="btn" id="btnMeet" type="button">اجتماع</button>
+    <button class="btn" id="btnVisit" type="button">زيارة تفقدية</button>
     <div class="speed"><span>السرعة</span><div class="seg" role="group" aria-label="سرعة المحاكاة">
       <button type="button" data-sp="1" aria-pressed="true">1×</button>
       <button type="button" data-sp="2" aria-pressed="false">2×</button>
@@ -1013,7 +1014,8 @@ async function runReport(){
   busy=false;updateButtons();
 }
 
-async function runMeeting(msg){
+let inMeeting=false,inspecting=false;
+async function runMeeting(msg){inMeeting=true;
   if(busy)return;busy=true;updateButtons();meetMsg='';drawMeet();
   log('Faisal دعا الفريق لاجتماع في القاعة العامة');$('#pipeState').textContent='اجتماع';
   const order=[A.faisal,...agents.filter(a=>a!==A.faisal)];
@@ -1021,11 +1023,20 @@ async function runMeeting(msg){
   meetMsg=msg;drawMeet();log(`رسالة Faisal: ${msg}`);await wait(9);
   log('انتهى الاجتماع، كل واحد راجع لمكانه');
   await Promise.all(order.map(async (a,i)=>{await wait((order.length-i)*.1);if(a.dept){const sp=takeRest(a);await a.goTo(sp,'راجع');a.setStatus(sp.kind==='cafe'?'في المقهى':'يرتاح','rest');}else{await a.goTo(a.seat,'راجع لمكتبه');a.setStatus(a===A.angel?'يراقب السلسلة':a===A.faisal?'في مكتبه':'متاح','idle');}}));
-  $('#pipeState').textContent='جاهز';busy=false;updateButtons();
+  $('#pipeState').textContent='جاهز';busy=false;inMeeting=false;updateButtons();
 }
 
 function updateButtons(){$('#btnReport').disabled=busy;$('#btnMeet').disabled=busy;$('#btnMeet').title=busy?'الاجتماع متاح بعد ما يخلص الشغل الحالي':'';}
 $('#btnReport').onclick=()=>runReport();
+/* Faisal leaves his office only for meetings and surprise visits to managers */
+const MANAGERS=()=>['angel','vandaik','salah','aziz','neves',...DEPTS.map(d=>d.members[0].id)];
+async function inspect(id){const F=A.faisal,M=A[id];if(inspecting||inMeeting||!M||M===F)return;inspecting=true;$('#btnVisit').disabled=true;
+  const fPrev=[F.statusText,F.statusKind],sp=visitFor(M);log(`Faisal في زيارة تفقدية لـ ${M.name}`);
+  await F.goTo(sp,'في طريقه لزيارة تفقدية');F.setStatus('يتفقد '+M.name,'meet');const mPrev=[M.statusText,M.statusKind];M.setStatus('يستقبل زيارة Faisal','meet');M.showBadge('زيارة تفقدية',6000);
+  await wait(5);log(`${M.name} شرح لـ Faisal وين وصل الشغل`);M.setStatus(mPrev[0],mPrev[1]);
+  await F.goTo(F.seat,'راجع لمكتبه');F.setStatus(fPrev[0]==='في طريقه لزيارة تفقدية'?'في مكتبه':fPrev[0],fPrev[1]);inspecting=false;$('#btnVisit').disabled=false;}
+$('#btnVisit').onclick=()=>{const ids=MANAGERS();inspect(ids[Math.floor(Math.random()*ids.length)]);};
+setInterval(()=>{if(!LIVE&&!document.hidden&&Math.random()<.35){const ids=MANAGERS();inspect(ids[Math.floor(Math.random()*ids.length)]);}},90000);
 $('#btnMeet').onclick=()=>{$('#mMeet').hidden=false;$('#mtMsg').focus();};
 $('#mtCancel').onclick=()=>{$('#mMeet').hidden=true;};
 $('#mtGo').onclick=()=>{const m=$('#mtMsg').value.trim()||'اجتماع سريع';$('#mMeet').hidden=true;runMeeting(m);};
@@ -1164,6 +1175,7 @@ function enterLive(run){if(!LIVE){LIVE=true;waiters.length=0;busy=true;updateBut
 function applyStatus(id,d){const a=A[id];if(!a||!d)return;a.setStatus(d.text||'',d.kind||'idle');
   if(d.kind==='rest'&&a.dept){const sp=takeRest(a);a.goTo(sp);}else if(['work','done','wait','idle','alert'].includes(d.kind)&&a.spot!==a.seat){a.goTo(a.seat||a.home);}}
 function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;
+  if(m.from==='faisal'&&m.kind==='inspect'){inspect(m.to);return;}
   if(m.from==='faisal'&&m.via!=='visit'){b.showBadge('✉ إيميل من Faisal',8000);return;}
   if(m.via==='visit'||m.from==='faisal'){const sp=visitFor(a);if(!sp)return;b.goTo(sp).then(()=>{b.carry='file';return b.goTo(b.seat||b.home);}).then(()=>{b.carry=null;});return;}
   if(m.via==='email'){b.showBadge('✉ إيميل من '+a.name,8000);return;}const sp=visitFor(b);if(!sp)return;
@@ -1173,7 +1185,7 @@ function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;
   db.doc('run/current').onSnapshot(s=>{const d=s.data();if(d&&d.active)enterLive(d);},()=>{});
   db.collection('status').onSnapshot(snap=>{if(!LIVE)return;snap.docs.forEach(x=>applyStatus(x.id,x.data()));},()=>{});
   db.collection('chat').orderBy('t').limit(400).onSnapshot(snap=>{if(!LIVE)return;
-    snap.docChanges().forEach(ch=>{if(ch.type!=='added')return;const m=ch.doc.data();chatAdd(m);if(m.kind==='handoff'&&(m.t||0)>liveStart-5000)animateHandoff(m);});},()=>{});
+    snap.docChanges().forEach(ch=>{if(ch.type!=='added')return;const m=ch.doc.data();chatAdd(m);if((m.kind==='handoff'||m.kind==='inspect')&&(m.t||0)>liveStart-5000)animateHandoff(m);});},()=>{});
 }catch(e){}})();
 })().catch(e=>{const l=document.getElementById('loading');l.hidden=false;l.textContent='تعذّر تشغيل المبنى: '+e.message;console.error(e);});
 </script>

@@ -1,0 +1,28 @@
+{
+  "name": "revenue-team-desktop",
+  "productName": "فريق الإيرادات",
+  "version": "0.1.0",
+  "description": "فريق تخطيط ومراقبة الإيرادات: برنامج ديسكتوب",
+  "main": "app/main.js",
+  "private": true,
+  "scripts": {
+    "sync": "node scripts/sync-building.js",
+    "start": "npm run sync && electron .",
+    "test": "node scripts/test-pipeline.js",
+    "dist:win": "npm run sync && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8",
+    "three": "0.147.0"
+  },
+  "build": {
+    "appId": "sa.alriyadh.revenue-team",
+    "files": ["app/**/*", "!app/**/*.map"],
+    "extraResources": [
+      {"from": "engine", "to": "engine", "filter": ["revenue_engine.py", "dist/**/*"]}
+    ],
+    "win": {"target": "nsis"},
+    "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true, "artifactName": "RevenueTeam-Setup-${version}.exe"}
+  }
+}

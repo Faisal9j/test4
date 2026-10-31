@@ -1,0 +1,38 @@
+/* شريط الطلبات فوق المبنى */
+#rvBar{position:fixed;top:0;left:0;right:0;height:56px;z-index:40;display:flex;align-items:center;gap:10px;padding:0 16px;
+  background:var(--panel-solid,#111925);border-bottom:1px solid var(--line,#22304a);direction:rtl;font-family:var(--font-ui)}
+#rvBar form{flex:1;display:flex;gap:8px;min-width:0}
+#rvBar input{flex:1;min-width:0;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 12px;font:14px var(--font-ui)}
+#rvBar button,.rvM button{height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:0 14px;font:600 13px var(--font-ui);cursor:pointer;white-space:nowrap}
+#rvBar button.pri,.rvM button.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+#rvBar button:disabled{opacity:.5;cursor:default}
+#rvState{color:var(--muted);font-size:12.5px;max-width:30ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rvChips{display:flex;gap:6px}
+#rvChips button{height:30px;font-weight:500;font-size:12px;color:var(--muted)}
+body.rv header.ui{top:68px!important}
+body.rv aside.ui{top:148px!important}
+body.rv #loading{top:56px}
+#rvApprove{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:41;width:min(560px,calc(100% - 32px));background:var(--panel-solid);border:1px solid var(--accent);
+  border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;direction:rtl;font-family:var(--font-ui);color:var(--fg)}
+#rvApprove h3{margin:0 0 8px;font-size:15px}
+#rvApprove ul{margin:0 0 10px;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+#rvApprove li button{all:unset;cursor:pointer;color:var(--walk);text-decoration:underline;font-size:13px}
+#rvApprove .row,.rvM .row{display:flex;gap:8px;align-items:center}
+#rvApprove input{flex:1;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 10px;font:13px var(--font-ui)}
+#rvApprove button{height:34px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:0 12px;font:600 13px var(--font-ui);cursor:pointer}
+#rvApprove button.pri{background:var(--rest);border-color:var(--rest);color:#06140e}
+.rvM{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(0,0,0,.55);direction:rtl;font-family:var(--font-ui);color:var(--fg)}
+.rvM .box{width:min(720px,calc(100% - 32px));max-height:calc(100% - 48px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.rvM h2{margin:0 0 4px;font:700 18px var(--font-display)}
+.rvM p.hint{margin:0 0 12px;color:var(--muted);font-size:12.5px}
+.rvM fieldset{border:1px solid var(--line);border-radius:12px;margin:0 0 12px;padding:10px 12px;display:grid;gap:8px}
+.rvM legend{padding:0 6px;color:var(--accent);font-weight:600;font-size:13px}
+.rvM label{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;font-size:13px}
+.rvM label .row{min-width:0}
+.rvM input,.rvM select,.rvM textarea{width:100%;min-width:0;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:0 10px;font:13px var(--font-ui);box-sizing:border-box}
+.rvM textarea{height:180px;padding:8px 10px;font:12px ui-monospace,Consolas,monospace;direction:ltr;text-align:left}
+.rvM input.ltr{direction:ltr;text-align:left}
+.rvM .foot{display:flex;gap:8px;justify-content:flex-start;align-items:center;margin-top:6px;flex-wrap:wrap}
+#rvCheck{font-size:12.5px;line-height:1.8;white-space:pre-wrap;color:var(--muted)}
+.ok{color:var(--rest)}.bad{color:var(--bad)}
+@media (max-width:900px){#rvChips{display:none}.rvM label{grid-template-columns:1fr}}

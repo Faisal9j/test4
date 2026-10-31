@@ -266,8 +266,8 @@ nav .live{color:var(--warn)!important;font-weight:600}
   <ol id="log" hidden></ol>
 </aside>
 
-<section class="card" id="who" hidden aria-live="polite"><div class="wh"><strong id="whoName"></strong><span class="live" id="whoLive">مباشر</span><button type="button" id="whoX" aria-label="إغلاق">×</button></div><div class="meta" id="whoRole"></div><div class="st" id="whoSt"></div><div class="meta" id="whoSince"></div><div class="scr" id="whoScr"></div><div class="det" id="whoDet"></div><h4>آخر رسائله</h4><ol id="whoMsgs"></ol></section>
-<div class="modal" id="mVisit" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="mvT"><h2 id="mvT">زيارة تفقدية</h2><p>اختر المدير اللي تبي تزوره. تنزل له وتقدر تكلمه مباشرة، ويرد عليك من واقع شغله الحين.</p><div class="mgrs" id="mvList"></div><div class="row"><button class="btn" id="mvCancel" type="button">إلغاء</button></div></div></div>
+<section class="card" id="who" hidden aria-live="polite"><div class="wh"><strong id="whoName"></strong><span class="live" id="whoLive">مباشر</span><button type="button" id="whoTalk" style="all:unset;cursor:pointer;background:var(--accent);color:#1a1408;font-weight:700;font-size:12px;padding:3px 10px;border-radius:8px">💬 كلّمه</button><button type="button" id="whoX" aria-label="إغلاق">×</button></div><div class="meta" id="whoRole"></div><div class="st" id="whoSt"></div><div class="meta" id="whoSince"></div><div class="scr" id="whoScr"></div><div class="det" id="whoDet"></div><h4>آخر رسائله</h4><ol id="whoMsgs"></ol></section>
+<div class="modal" id="mVisit" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="mvT"><h2 id="mvT">زيارة تفقدية</h2><p>اختر المدير أو الموظف اللي تبي تزوره. تنزل له وتقدر تكلمه مباشرة، ويرد عليك من واقع شغله الحين.</p><div class="mgrs" id="mvList"></div><div class="row"><button class="btn" id="mvCancel" type="button">إلغاء</button></div></div></div>
 <section class="card" id="vchat" hidden aria-label="محادثة الزيارة"><div class="vh"><strong id="vTitle"></strong><button type="button" id="vEnd">إنهاء الزيارة</button></div><ol id="vlog" aria-live="polite"></ol><form id="vform"><input id="vin" autocomplete="off" placeholder="اكتب له…"><button id="vsend" type="submit">إرسال</button></form></section>
 <footer class="ui">
   <section class="card chat" id="chat" aria-label="محادثة الفريق">
@@ -1081,9 +1081,9 @@ async function inspect(id){const F=A.faisal,M=A[id];if(inspecting||inMeeting||!M
   await F.goTo(F.seat,'راجع لمكتبه');F.setStatus(fPrev[0]==='في طريقه لزيارة تفقدية'?'في مكتبه':fPrev[0],fPrev[1]);inspecting=false;$('#btnVisit').disabled=false;}
 let DB=null,SAMPLE=null,VID=null,VTURNS=[],vBusy=false;
 const ROLEDESC={angel:'مدير غرفة التحكم، يستلم طلبات Faisal ويوزعها على الفريق ويعتمد قبل النشر',vandaik:'مدير المراجعة، يدمج تقارير الأقسام ويراجعها',salah:'المدقق الأول، يعيد حساب الأرقام بشكل مستقل ويطابقها',aziz:'المدقق الثاني، يراجع منطق التحليل والتفسيرات والمصادر',neves:'مسؤول الإنتاج، يطلع التقارير PDF وExcel'};
-function roleOf(id){const a=A[id];if(ROLEDESC[id])return ROLEDESC[id];if(a&&a.dept)return 'قائد قسم '+a.dept.name+' ومحلل التحصيل فيه';return '';}
+function roleOf(id){const a=A[id];if(ROLEDESC[id])return ROLEDESC[id];if(a&&a.dept)return a.isLead?'قائد قسم '+a.dept.name+' ومحلل التحصيل فيه':(a.role==='P'?'مخطط في قسم '+a.dept.name+' (المقدر والإقفال المتوقع)':'محلل في قسم '+a.dept.name);if(id==='recv')return 'المستلم في غرفة التحكم، يستلم ملفات الدرايف وينظفها';if(id==='cls')return 'المصنّف في غرفة التحكم، يصنّف الفواتير على التبويبات وسبب الإصدار';if(id==='ent')return 'مسؤول الجهات في غرفة التحكم، يوزع الفواتير على المدينة والبلديات';return '';}
 function vAdd(txt,cls){const li=document.createElement('li');li.className=cls;li.textContent=txt;$('#vlog').appendChild(li);$('#vlog').scrollTop=1e9;return li;}
-function openVisitPicker(){const L=$('#mvList');L.innerHTML='';MANAGERS().forEach(id=>{const a=A[id];if(!a)return;const b=document.createElement('button');b.type='button';
+function openVisitPicker(){const L=$('#mvList');L.innerHTML='';const M=MANAGERS();M.concat(agents.map(a=>a.id).filter(i=>i!=='faisal'&&!M.includes(i))).forEach(id=>{const a=A[id];if(!a)return;const b=document.createElement('button');b.type='button';
   const n=document.createElement('b');n.textContent=a.name;const s=document.createElement('small');s.textContent=a.statusText||'';b.append(n,s);b.onclick=()=>{$('#mVisit').hidden=true;startVisit(id);};L.appendChild(b);});
   $('#mVisit').hidden=false;}
 async function startVisit(id){const F=A.faisal,M=A[id];if(!M||inspecting||inMeeting)return;inspecting=true;VID=id;VTURNS=[];$('#btnVisit').disabled=true;
@@ -1113,7 +1113,7 @@ $('#vform').addEventListener('submit',async e=>{e.preventDefault();const q=$('#v
     if(DB)DB.collection('chat').doc('v'+t2).set({t:t2,from:id,to:'faisal',kind:'visit',via:'visit',text:r.text}).catch(()=>{});}
   catch(err){VTURNS.pop();li.className='sys';li.textContent=err&&err.code==='not_granted'?'ما سمحت للمبنى يستخدم Claude، فالرد المباشر متوقف.':err&&err.code==='rate_limited'?'كثرت الرسائل، انتظر شوي.':'ما وصل الرد، جرّب مرة ثانية.';}
   finally{vBusy=false;$('#vsend').disabled=false;$('#vin').focus();}});
-$('#vEnd').onclick=()=>endVisit();$('#mvCancel').onclick=()=>{$('#mVisit').hidden=true;};
+$('#vEnd').onclick=()=>endVisit();$('#whoTalk').onclick=()=>{if(WHO&&WHO!=='faisal'){const id=WHO;$('#who').hidden=true;WHO=null;startVisit(id);}};$('#mvCancel').onclick=()=>{$('#mVisit').hidden=true;};
 (async()=>{try{SAMPLE=window.claude&&window.claude.use?await window.claude.use('sample'):null;}catch(e){SAMPLE=null;}})();
 $('#btnVisit').onclick=()=>openVisitPicker();
 setInterval(()=>{if(!LIVE&&!document.hidden&&Math.random()<.35){const ids=MANAGERS();inspect(ids[Math.floor(Math.random()*ids.length)]);}},90000);

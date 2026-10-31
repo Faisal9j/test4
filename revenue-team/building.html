@@ -21,9 +21,18 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);overflow:hi
 .lbl{pointer-events:auto;cursor:pointer}
 #who{position:fixed;top:64px;left:12px;width:min(340px,calc(100vw - 24px));z-index:30;max-height:70vh;overflow:auto}
 #who[hidden]{display:none!important}
+#who .scr{margin:8px 0 4px;background:#0b1512;border:6px solid #26302d;border-bottom-width:14px;border-radius:8px;padding:8px 10px;font:12px/1.65 ui-monospace,Menlo,Consolas,monospace;color:#9fe3b9;min-height:120px;direction:rtl;position:relative;box-shadow:inset 0 0 18px rgba(60,200,140,.12)}
+#who .scr::after{content:"";position:absolute;left:50%;bottom:-11px;width:6px;height:6px;border-radius:50%;background:#3cc58f;transform:translateX(-50%)}
+#who .scr .bar{display:flex;justify-content:space-between;color:#5f8f7d;font-size:10.5px;border-bottom:1px solid #1f3a31;margin-bottom:6px;padding-bottom:3px}
+#who .scr .ln{white-space:pre-wrap;word-break:break-word}
+#who .scr .ln::before{content:"› ";color:#3cc58f}
+#who .scr .mail{color:#f0c674}#who .scr .mail::before{content:"✉ ";color:#f0c674}
+#who .scr .cur{display:inline-block;width:7px;height:13px;background:#9fe3b9;vertical-align:-2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
 #who .wh{display:flex;align-items:center;gap:8px}#who .wh strong{font-size:15px;flex:1}
 #who .wh button{background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px}
-#who .st{margin:8px 0 2px;font-weight:700;display:flex;align-items:center;gap:6px}
+#who .st{margin:8px 0 2px;font-weight:700;font-size:13.5px;background:none;padding:0;justify-content:flex-start;display:flex;align-items:center;gap:6px}
 #who .st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,var(--idle))}
 #who .st[data-k="work"]{--c:var(--warn)}#who .st[data-k="done"]{--c:#7fd6c4}#who .st[data-k="alert"]{--c:var(--bad)}#who .st[data-k="wait"]{--c:var(--muted)}
 #who .meta{color:var(--muted);font-size:11.5px}#who .det{margin:6px 0;font-size:12.5px;line-height:1.6}
@@ -241,7 +250,7 @@ nav .live{color:var(--warn)!important;font-weight:600}
   <ol id="log" hidden></ol>
 </aside>
 
-<section class="card" id="who" hidden aria-live="polite"><div class="wh"><strong id="whoName"></strong><span class="live" id="whoLive">مباشر</span><button type="button" id="whoX" aria-label="إغلاق">×</button></div><div class="meta" id="whoRole"></div><div class="st" id="whoSt"></div><div class="meta" id="whoSince"></div><div class="det" id="whoDet"></div><h4>آخر رسائله</h4><ol id="whoMsgs"></ol></section>
+<section class="card" id="who" hidden aria-live="polite"><div class="wh"><strong id="whoName"></strong><span class="live" id="whoLive">مباشر</span><button type="button" id="whoX" aria-label="إغلاق">×</button></div><div class="meta" id="whoRole"></div><div class="st" id="whoSt"></div><div class="meta" id="whoSince"></div><div class="scr" id="whoScr"></div><div class="det" id="whoDet"></div><h4>آخر رسائله</h4><ol id="whoMsgs"></ol></section>
 <footer class="ui">
   <section class="card chat" id="chat" aria-label="محادثة الفريق">
     <div class="chat-head"><strong>محادثة الفريق</strong><span class="mode" id="chatMode">محاكاة</span><button class="tog" id="chatTog" type="button" aria-expanded="true">إخفاء</button></div>
@@ -1191,7 +1200,14 @@ function renderWho(){if(!WHO)return;const a=A[WHO];if(!a)return;const m=STM[WHO]
   $('#whoName').textContent=a.name;$('#whoRole').textContent=a.dept?(a.dept.name+' · '+(a.role==='P'?'تخطيط':'تحليل')+(a.isLead?' · قائد القسم':'')):'';
   const st=$('#whoSt');st.textContent=(a.statusText||'—');st.dataset.k=a.statusKind||'idle';
   $('#whoLive').hidden=!LIVE;$('#whoSince').textContent=(KINDS[a.statusKind]||'')+(m&&LIVE?' · '+ago(m.at):'');
-  $('#whoDet').textContent=(m&&m.detail)||'';
+  $('#whoDet').textContent='';const scr=$('#whoScr');scr.innerHTML='';
+  const bar=document.createElement('div');bar.className='bar';bar.innerHTML='<span></span><span></span>';bar.children[0].textContent='جهاز '+a.name;bar.children[1].textContent=RYD(Date.now());scr.appendChild(bar);
+  const add=(txt,c)=>{const d=document.createElement('div');d.className=c||'ln';d.textContent=txt;scr.appendChild(d);};
+  const mails=CHAT.filter(x=>x.to===WHO&&(x.via==='email'||x.from==='faisal')).slice(-3);
+  mails.forEach(x=>add('بريد من '+nameOf(x.from)+' ('+RYD(x.t||Date.now())+'): '+x.text,'mail'));
+  const lines=(m&&Array.isArray(m.screen)&&m.screen.length)?m.screen:[a.statusText||'—'].concat(m&&m.detail?[m.detail]:[]).concat(CHAT.filter(x=>x.from===WHO).slice(-2).map(x=>'أرسل لـ '+nameOf(x.to)+': '+x.text));
+  lines.slice(-8).forEach(l=>add(String(l)));const cu=document.createElement('span');cu.className='cur';scr.appendChild(cu);
+  if(a._mailOn){a._mailOn=false;a.el.firstChild.hidden=true;}
   const ol=$('#whoMsgs');ol.innerHTML='';const mine=CHAT.filter(x=>x.from===WHO||x.to===WHO).slice(-6).reverse();
   if(!mine.length){const li=document.createElement('li');li.textContent='ما فيه رسائل للحين';ol.appendChild(li);}
   mine.forEach(x=>{const li=document.createElement('li');const out=x.from===WHO;li.textContent=(out?'إلى '+nameOf(x.to):'من '+nameOf(x.from))+': '+x.text;const tm=document.createElement('time');tm.textContent=RYD(x.t||Date.now());li.appendChild(tm);ol.appendChild(li);});}
@@ -1211,13 +1227,13 @@ function enterLive(run){if(!LIVE){LIVE=true;waiters.length=0;busy=true;updateBut
     agents.forEach(a=>{if(a.dept)freeRest(a);a.carry=null;a.goTo(a.seat||a.home).then(()=>{});a.setStatus('بانتظار دوره','wait');});
     $('#chatMode').textContent='مباشر';$('#chatMode').classList.add('live');document.querySelector('.brand .sim').textContent='مباشر';}
   if(typeof run.stage==='number')setStage(run.stage,run.label||undefined);}
-function applyStatus(id,d){const a=A[id];if(!a||!d)return;const pv=STM[id];if(!pv||pv.text!==d.text||pv.kind!==d.kind)STM[id]={text:d.text,kind:d.kind,detail:d.detail||'',at:d.at||Date.now()};a.setStatus(d.text||'',d.kind||'idle');if(WHO===id)renderWho();
+function applyStatus(id,d){const a=A[id];if(!a||!d)return;const pv=STM[id];if(!pv||pv.text!==d.text||pv.kind!==d.kind)STM[id]={text:d.text,kind:d.kind,detail:d.detail||'',at:d.at||Date.now(),screen:d.screen||null};else{STM[id].detail=d.detail||STM[id].detail;STM[id].screen=d.screen||STM[id].screen;}a.setStatus(d.text||'',d.kind||'idle');if(WHO===id)renderWho();
   if(d.kind==='rest'&&a.dept){const sp=takeRest(a);a.goTo(sp);}else if(['work','done','wait','idle','alert'].includes(d.kind)&&a.spot!==a.seat){a.goTo(a.seat||a.home);}}
 function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;
   if(m.from==='faisal'&&m.kind==='inspect'){inspect(m.to);return;}
-  if(m.from==='faisal'&&m.via!=='visit'){b.showBadge('✉ إيميل من Faisal',8000);return;}
+  if(m.from==='faisal'&&m.via!=='visit'){b.showBadge('✉ إيميل من Faisal — اضغط',36e5);b._mailOn=true;return;}
   if(m.via==='visit'||m.from==='faisal'){const sp=visitFor(a);if(!sp)return;b.goTo(sp).then(()=>{b.carry='file';return b.goTo(b.seat||b.home);}).then(()=>{b.carry=null;});return;}
-  if(m.via==='email'){b.showBadge('✉ إيميل من '+a.name,8000);return;}const sp=visitFor(b);if(!sp)return;
+  if(m.via==='email'){b.showBadge('✉ إيميل من '+a.name+' — اضغط',36e5);b._mailOn=true;return;}const sp=visitFor(b);if(!sp)return;
   a.carry=m.item||'file';a.goTo(sp).then(()=>{a.carry=null;return a.goTo(a.seat||a.home);});}
 (async()=>{try{
   const db=window.claude&&window.claude.use?await window.claude.use('db'):null;if(!db)return;

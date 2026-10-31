@@ -18,6 +18,20 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);overflow:hi
 #stage{position:fixed;inset:0;background:var(--sky,radial-gradient(ellipse at 55% 45%,#16233a 0%,#0a0f17 72%));transition:background 1.2s}
 #stage canvas{display:block;width:100%;height:100%;outline:none}
 #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lbl{pointer-events:auto;cursor:pointer}
+#who{position:fixed;top:64px;left:12px;width:min(340px,calc(100vw - 24px));z-index:30;max-height:70vh;overflow:auto}
+#who[hidden]{display:none!important}
+#who .wh{display:flex;align-items:center;gap:8px}#who .wh strong{font-size:15px;flex:1}
+#who .wh button{background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px}
+#who .st{margin:8px 0 2px;font-weight:700;display:flex;align-items:center;gap:6px}
+#who .st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,var(--idle))}
+#who .st[data-k="work"]{--c:var(--warn)}#who .st[data-k="done"]{--c:#7fd6c4}#who .st[data-k="alert"]{--c:var(--bad)}#who .st[data-k="wait"]{--c:var(--muted)}
+#who .meta{color:var(--muted);font-size:11.5px}#who .det{margin:6px 0;font-size:12.5px;line-height:1.6}
+#who h4{margin:10px 0 4px;font-size:12px;color:var(--muted);font-weight:600}
+#who ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+#who li{font-size:12px;line-height:1.55;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.04)}
+#who li time{color:var(--muted);font-size:10.5px;margin-inline-start:6px}
+#who .live{font-size:10.5px;color:#7fd6c4;border:1px solid currentColor;border-radius:8px;padding:0 6px}
 .lbl{position:absolute;left:0;top:0;transform:translate(-50%,-100%);white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:2px;will-change:transform}
  .lbl b{font-size:11px;font-weight:600;color:#e7ecf3;background:rgba(10,15,23,.82);border:1px solid rgba(60,76,102,.7);padding:2px 7px;border-radius:6px}
 .lbl span{--c:var(--idle);font-size:10px;font-weight:600;color:var(--c);background:rgba(10,15,23,.82);padding:1px 7px 1px 6px;border-radius:6px;display:flex;align-items:center;gap:4px}
@@ -227,6 +241,7 @@ nav .live{color:var(--warn)!important;font-weight:600}
   <ol id="log" hidden></ol>
 </aside>
 
+<section class="card" id="who" hidden aria-live="polite"><div class="wh"><strong id="whoName"></strong><span class="live" id="whoLive">مباشر</span><button type="button" id="whoX" aria-label="إغلاق">×</button></div><div class="meta" id="whoRole"></div><div class="st" id="whoSt"></div><div class="meta" id="whoSince"></div><div class="det" id="whoDet"></div><h4>آخر رسائله</h4><ol id="whoMsgs"></ol></section>
 <footer class="ui">
   <section class="card chat" id="chat" aria-label="محادثة الفريق">
     <div class="chat-head"><strong>محادثة الفريق</strong><span class="mode" id="chatMode">محاكاة</span><button class="tog" id="chatTog" type="button" aria-expanded="true">إخفاء</button></div>
@@ -885,7 +900,8 @@ let LIVE=false,liveStart=Date.now();const chatList=$('#chatList');
 const PAL=['#43c3dc','#f0b54a','#9a86f2','#3cc58f','#ff8a6b','#7fb2ff','#e48ad1','#c9d36b'];
 function colorOf(id){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;return PAL[h%PAL.length];}
 function nameOf(id){return (A[id]&&A[id].name)||id||'المنسّق';}
-function chatAdd(m){
+const CHAT=[];const STM={};
+function chatAdd(m){CHAT.push(m);if(WHO&&(m.from===WHO||m.to===WHO))renderWho();
   const li=document.createElement('li');li.className=m.kind||'';
   const who=document.createElement('span');who.className='who';who.style.setProperty('--c',colorOf(m.from));who.textContent=nameOf(m.from);
   if(m.to){const em=document.createElement('em');em.textContent=' ← '+nameOf(m.to);who.appendChild(em);}
@@ -1167,13 +1183,35 @@ $('#loading').hidden=true;
 requestAnimationFrame(frame);
 log('المبنى جاهز. الحركة محاكاة للعرض حتى التشغيل الحقيقي');
 setTimeout(()=>{if(!LIVE)runReport();},1500);
+
+/* ---------- who panel: click a person to see what they are doing live ---------- */
+var WHO=null;const KINDS={work:'يشتغل',done:'خلّص',wait:'ينتظر',alert:'عنده ملاحظة',idle:'متاح',walk:'يمشي',rest:'استراحة',meet:'اجتماع'};
+function ago(ms){const s=Math.max(0,(Date.now()-ms)/1000|0);return s<60?'قبل لحظات':s<3600?'قبل '+(s/60|0)+' دقيقة':'قبل '+(s/3600|0)+' ساعة';}
+function renderWho(){if(!WHO)return;const a=A[WHO];if(!a)return;const m=STM[WHO];
+  $('#whoName').textContent=a.name;$('#whoRole').textContent=a.dept?(a.dept.name+' · '+(a.role==='P'?'تخطيط':'تحليل')+(a.isLead?' · قائد القسم':'')):'';
+  const st=$('#whoSt');st.textContent=(a.statusText||'—');st.dataset.k=a.statusKind||'idle';
+  $('#whoLive').hidden=!LIVE;$('#whoSince').textContent=(KINDS[a.statusKind]||'')+(m&&LIVE?' · '+ago(m.at):'');
+  $('#whoDet').textContent=(m&&m.detail)||'';
+  const ol=$('#whoMsgs');ol.innerHTML='';const mine=CHAT.filter(x=>x.from===WHO||x.to===WHO).slice(-6).reverse();
+  if(!mine.length){const li=document.createElement('li');li.textContent='ما فيه رسائل للحين';ol.appendChild(li);}
+  mine.forEach(x=>{const li=document.createElement('li');const out=x.from===WHO;li.textContent=(out?'إلى '+nameOf(x.to):'من '+nameOf(x.from))+': '+x.text;const tm=document.createElement('time');tm.textContent=RYD(x.t||Date.now());li.appendChild(tm);ol.appendChild(li);});}
+function openWho(id){WHO=id;$('#who').hidden=false;renderWho();}
+$('#whoX').addEventListener('click',()=>{WHO=null;$('#who').hidden=true;});
+setInterval(()=>{if(WHO)renderWho();},15000);
+labelsEl.addEventListener('click',e=>{const el=e.target.closest('.lbl');if(!el)return;const ag=agents.find(a=>a.el===el);if(ag)openWho(ag.id);});
+{const rc=new THREE.Raycaster(),mv=new THREE.Vector2();let down=null;
+ renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});
+ renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6)return;const r=renderer.domElement.getBoundingClientRect();
+  mv.x=((e.clientX-r.left)/r.width)*2-1;mv.y=-((e.clientY-r.top)/r.height)*2+1;rc.setFromCamera(mv,camera);
+  const hits=rc.intersectObjects(agents.map(a=>a.P.root),true);if(!hits.length)return;let o=hits[0].object;
+  const ag=agents.find(a=>{let x=o;while(x){if(x===a.P.root)return true;x=x.parent;}return false;});if(ag)openWho(ag.id);});}
 /* live run: statuses, handoffs and chat written by the team run */
 function visitFor(ag){if(!ag)return null;const r=ag.home.room;if(ag.dept)return ag.dept.visit;if(S[ag.id+'Visit'])return S[ag.id+'Visit'];if(r&&r.visit)return r.visit;if(r&&r.kind==='hall')return S.drop[0];return ag.home;}
 function enterLive(run){if(!LIVE){LIVE=true;waiters.length=0;busy=true;updateButtons();chatList.innerHTML='';
     agents.forEach(a=>{if(a.dept)freeRest(a);a.carry=null;a.goTo(a.seat||a.home).then(()=>{});a.setStatus('بانتظار دوره','wait');});
     $('#chatMode').textContent='مباشر';$('#chatMode').classList.add('live');document.querySelector('.brand .sim').textContent='مباشر';}
   if(typeof run.stage==='number')setStage(run.stage,run.label||undefined);}
-function applyStatus(id,d){const a=A[id];if(!a||!d)return;a.setStatus(d.text||'',d.kind||'idle');
+function applyStatus(id,d){const a=A[id];if(!a||!d)return;const pv=STM[id];if(!pv||pv.text!==d.text||pv.kind!==d.kind)STM[id]={text:d.text,kind:d.kind,detail:d.detail||'',at:d.at||Date.now()};a.setStatus(d.text||'',d.kind||'idle');if(WHO===id)renderWho();
   if(d.kind==='rest'&&a.dept){const sp=takeRest(a);a.goTo(sp);}else if(['work','done','wait','idle','alert'].includes(d.kind)&&a.spot!==a.seat){a.goTo(a.seat||a.home);}}
 function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;
   if(m.from==='faisal'&&m.kind==='inspect'){inspect(m.to);return;}

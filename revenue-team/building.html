@@ -58,6 +58,22 @@ nav hr{border:0;border-top:1px solid var(--line);margin:2px 4px}
 
 footer.ui{bottom:calc(env(safe-area-inset-bottom,0px) + 12px);right:max(16px,env(safe-area-inset-right,0px));left:max(16px,env(safe-area-inset-left,0px));display:flex;gap:10px;align-items:stretch;pointer-events:none}
 footer .card{pointer-events:auto}
+footer.ui{flex-direction:column}
+.frow{display:flex;gap:10px;align-items:stretch;min-width:0}
+.chat{padding:8px 12px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chat-head{display:flex;align-items:center;gap:8px}
+.chat-head strong{font-size:13px}
+.chat-head .mode{font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid currentColor;color:var(--warn)}
+.chat-head .mode.live{color:var(--rest)}
+.chat-head .tog{margin-inline-start:auto;border:0;background:transparent;color:var(--muted);font:600 12px var(--font-ui);cursor:pointer}
+#chatList{list-style:none;margin:0;padding:0;overflow:auto;max-height:118px;display:flex;flex-direction:column;gap:3px;scroll-behavior:smooth}
+#chatList li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;font-size:12.5px;line-height:1.55;padding:2px 6px;border-radius:6px}
+#chatList li.handoff{background:rgba(67,195,220,.07)}#chatList li.return{background:rgba(240,90,90,.09)}#chatList li.approve{background:rgba(60,197,143,.08)}
+#chatList .who{font-weight:700;white-space:nowrap;color:var(--c,var(--fg))}
+#chatList .who em{font-style:normal;color:var(--muted);font-weight:500}
+#chatList p{margin:0;color:var(--fg);min-width:0}
+#chatList time{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.chat.collapsed #chatList{display:none}
 .pipe{flex:1;min-width:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .pipe-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .pipe-head strong{font-size:13px}
@@ -141,6 +157,8 @@ nav .live{color:var(--warn)!important;font-weight:600}
 #loading{position:fixed;inset:0;display:grid;place-items:center;z-index:30;background:var(--bg);font:600 15px var(--font-ui);color:var(--muted)}
 
 @media (max-width:860px){
+  .frow{flex-direction:column;gap:6px}
+  #chatList{max-height:84px}
   nav.ui{top:calc(env(safe-area-inset-top,0px) + 132px);transform:none;bottom:auto;flex-direction:row;width:auto;left:max(16px,env(safe-area-inset-left,0px));overflow-x:auto;padding:6px;gap:4px}
   nav .fl{grid-template-columns:auto;padding:4px}
   nav .fl span,nav hr{display:none}
@@ -207,6 +225,11 @@ nav .live{color:var(--warn)!important;font-weight:600}
 </aside>
 
 <footer class="ui">
+  <section class="card chat" id="chat" aria-label="محادثة الفريق">
+    <div class="chat-head"><strong>محادثة الفريق</strong><span class="mode" id="chatMode">محاكاة</span><button class="tog" id="chatTog" type="button" aria-expanded="true">إخفاء</button></div>
+    <ol id="chatList" aria-live="polite"></ol>
+  </section>
+  <div class="frow">
   <div class="card pipe">
     <div class="pipe-head"><strong>سلسلة العمل</strong><small id="pipeState">جاهز</small></div>
     <div class="steps" id="steps"></div>
@@ -220,6 +243,7 @@ nav .live{color:var(--warn)!important;font-weight:600}
       <button type="button" data-sp="4" aria-pressed="false">4×</button>
     </div></div>
   </div>
+</div>
 </footer>
 
 <div class="modal" id="mApprove" hidden>
@@ -850,7 +874,24 @@ function setIndicator(i,v){const ind=animated.indicators[i];if(ind.val===v)retur
 
 /* ---------- UI: log, pipeline ---------- */
 const logEl=$('#log');let approved=0;
-function log(t,cls){const li=document.createElement('li');if(cls)li.className=cls;const tm=document.createElement('time');const d=new Date();tm.textContent=d.toTimeString().slice(0,5);const sp=document.createElement('span');sp.textContent=t;li.append(tm,sp);logEl.prepend(li);while(logEl.children.length>60)logEl.lastChild.remove();}
+/* ---------- team chat: simulated from the workflow, or live from the run store ---------- */
+let LIVE=false,liveStart=Date.now();const chatList=$('#chatList');
+const PAL=['#43c3dc','#f0b54a','#9a86f2','#3cc58f','#ff8a6b','#7fb2ff','#e48ad1','#c9d36b'];
+function colorOf(id){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;return PAL[h%PAL.length];}
+function nameOf(id){return (A[id]&&A[id].name)||id||'المنسّق';}
+function chatAdd(m){
+  const li=document.createElement('li');li.className=m.kind||'';
+  const who=document.createElement('span');who.className='who';who.style.setProperty('--c',colorOf(m.from));who.textContent=nameOf(m.from);
+  if(m.to){const em=document.createElement('em');em.textContent=' ← '+nameOf(m.to);who.appendChild(em);}
+  const p=document.createElement('p');p.textContent=m.text;const tm=document.createElement('time');tm.textContent=new Date(m.t||Date.now()).toTimeString().slice(0,5);
+  li.append(who,p,tm);chatList.appendChild(li);while(chatList.children.length>250)chatList.firstChild.remove();chatList.scrollTop=chatList.scrollHeight;}
+const SPEAK=[['المستلم','recv'],['المصنّف','cls'],['مسؤول الجهات','ent'],['Angel','angel'],['Faisal','faisal'],['Isak','isak'],['Sara','sara'],['Torres','torres'],['Gerrard','gerrard'],['Vandaik','vandaik'],['Salah','salah'],['Aziz','aziz'],['Neves','neves']];
+function simChat(t,cls){if(LIVE)return;let from=null,to=null;
+  for(const [n,id] of SPEAK){const i=t.indexOf(n);if(i===0)from=id;else if(i>0&&!to&&(t.slice(i-3,i).includes('لـ')||t.slice(i-2,i).includes('ل')))to=id;}
+  const m=t.match(/^(?:قائد |ملخص )(.+?) /);if(!from&&m){const r=DEPTS.find(d=>t.includes(d.name));if(r)from=r.members[0].id;}
+  chatAdd({from:from||'',to,text:t,kind:cls==='alert'?'return':cls==='ok'?'approve':(to?'handoff':''),t:Date.now()});}
+$('#chatTog').onclick=()=>{const c=$('#chat').classList.toggle('collapsed');$('#chatTog').textContent=c?'إظهار':'إخفاء';$('#chatTog').setAttribute('aria-expanded',!c);layoutUI();};
+function log(t,cls){simChat(t,cls);const li=document.createElement('li');if(cls)li.className=cls;const tm=document.createElement('time');const d=new Date();tm.textContent=d.toTimeString().slice(0,5);const sp=document.createElement('span');sp.textContent=t;li.append(tm,sp);logEl.prepend(li);while(logEl.children.length>60)logEl.lastChild.remove();}
 const stepsEl=$('#steps');
 STAGES.forEach(([who,what],i)=>{const d=document.createElement('div');d.className='st';d.innerHTML=`<i>${i+1}</i><b></b><small></small>`;d.querySelector('b').textContent=what;d.querySelector('small').textContent=who;stepsEl.appendChild(d);});
 function setStage(i,note){curStage=i;[...stepsEl.children].forEach((c,k)=>{c.classList.toggle('on',k===i);c.classList.toggle('done',k<i);});
@@ -1060,10 +1101,10 @@ applyTod();
 /* phone: stack the overlays from measured sizes so nothing hides behind the footer, and centre the 3D view in the space left between them */
 function layoutUI(){const mob=innerWidth<860,navEl=$('#floors'),asd=$('#logbox'),hd=$('header.ui'),ft=$('footer.ui');
   if(mob){navEl.style.top=(hd.getBoundingClientRect().bottom+8)+'px';asd.style.bottom=(innerHeight-ft.getBoundingClientRect().top+8)+'px';}
-  else{navEl.style.top='';asd.style.bottom='';}
+  else{const hb=hd.getBoundingClientRect().bottom,ft0=ft.getBoundingClientRect().top;navEl.style.top=((hb+ft0)/2)+'px';asd.style.bottom='';asd.style.maxHeight=Math.max(160,ft0-asd.getBoundingClientRect().top-12)+'px';}
   const W=innerWidth,H=innerHeight;
   if(mob){const top=navEl.getBoundingClientRect().bottom,bot=asd.getBoundingClientRect().top;const off=Math.round((top+bot)/2-H/2);camera.setViewOffset(W,H,0,-off,W,H);}
-  else camera.clearViewOffset();
+  else{const hb=hd.getBoundingClientRect().bottom,ft0=ft.getBoundingClientRect().top;const off=Math.round((hb+ft0)/2-H/2);camera.setViewOffset(W,H,0,-off,W,H);}
   camera.updateProjectionMatrix();}
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);const a=w/h,half=12;camera.left=-half*a;camera.right=half*a;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();layoutUI();}
 addEventListener('resize',resize);resize();
@@ -1109,6 +1150,23 @@ function frame(now){
 $('#loading').hidden=true;
 requestAnimationFrame(frame);
 log('المبنى جاهز. الحركة محاكاة للعرض حتى التشغيل الحقيقي');
-setTimeout(()=>runReport(),1200);
+setTimeout(()=>{if(!LIVE)runReport();},1500);
+/* live run: statuses, handoffs and chat written by the team run */
+function visitFor(ag){if(!ag)return null;const r=ag.home.room;if(ag.dept)return ag.dept.visit;if(S[ag.id+'Visit'])return S[ag.id+'Visit'];if(r&&r.visit)return r.visit;if(r&&r.kind==='hall')return S.drop[0];return ag.home;}
+function enterLive(run){if(!LIVE){LIVE=true;waiters.length=0;busy=true;updateButtons();chatList.innerHTML='';
+    agents.forEach(a=>{if(a.dept)freeRest(a);a.carry=null;a.goTo(a.seat||a.home).then(()=>{});a.setStatus('بانتظار دوره','wait');});
+    $('#chatMode').textContent='مباشر';$('#chatMode').classList.add('live');document.querySelector('.brand .sim').textContent='مباشر';}
+  if(typeof run.stage==='number')setStage(run.stage,run.label||undefined);}
+function applyStatus(id,d){const a=A[id];if(!a||!d)return;a.setStatus(d.text||'',d.kind||'idle');
+  if(d.kind==='rest'&&a.dept){const sp=takeRest(a);a.goTo(sp);}else if(['work','done','wait','idle','alert'].includes(d.kind)&&a.spot!==a.seat){a.goTo(a.seat||a.home);}}
+function animateHandoff(m){const a=A[m.from],b=A[m.to];if(!a||!b||a===b)return;const sp=visitFor(b);if(!sp)return;
+  a.carry=m.item||'file';a.goTo(sp).then(()=>{a.carry=null;return a.goTo(a.seat||a.home);});}
+(async()=>{try{
+  const db=window.claude&&window.claude.use?await window.claude.use('db'):null;if(!db)return;
+  db.doc('run/current').onSnapshot(s=>{const d=s.data();if(d&&d.active)enterLive(d);},()=>{});
+  db.collection('status').onSnapshot(snap=>{if(!LIVE)return;snap.docs.forEach(x=>applyStatus(x.id,x.data()));},()=>{});
+  db.collection('chat').orderBy('t').limit(400).onSnapshot(snap=>{if(!LIVE)return;
+    snap.docChanges().forEach(ch=>{if(ch.type!=='added')return;const m=ch.doc.data();chatAdd(m);if(m.kind==='handoff'&&(m.t||0)>liveStart-5000)animateHandoff(m);});},()=>{});
+}catch(e){}})();
 })().catch(e=>{const l=document.getElementById('loading');l.hidden=false;l.textContent='تعذّر تشغيل المبنى: '+e.message;console.error(e);});
 </script>

@@ -835,6 +835,7 @@ DEPTS.forEach(r=>r.members.forEach(ag=>{const sp=takeRest(ag);ag.place(sp);ag.se
 A.angel.setStatus('يراقب السلسلة','idle');A.faisal.setStatus('في مكتبه','idle');
 ['isak','sara','torres','gerrard'].forEach(id=>A[id].setStatus('متاح','idle'));
 
+const RYD=d=>new Date(d).toLocaleTimeString('en-GB',{timeZone:'Asia/Riyadh',hour:'2-digit',minute:'2-digit',hour12:false});const RYH=()=>+new Date().toLocaleString('en-GB',{timeZone:'Asia/Riyadh',hour:'2-digit',hour12:false});
 /* ---------- sim clock ---------- */
 const SIM={t:0,speed:1};const waiters=[];
 const wait=s=>new Promise(r=>waiters.push({at:SIM.t+s,r}));
@@ -888,7 +889,7 @@ function chatAdd(m){
   const li=document.createElement('li');li.className=m.kind||'';
   const who=document.createElement('span');who.className='who';who.style.setProperty('--c',colorOf(m.from));who.textContent=nameOf(m.from);
   if(m.to){const em=document.createElement('em');em.textContent=' ← '+nameOf(m.to);who.appendChild(em);}
-  const p=document.createElement('p');p.textContent=m.text;const tm=document.createElement('time');tm.textContent=new Date(m.t||Date.now()).toTimeString().slice(0,5);
+  const p=document.createElement('p');p.textContent=m.text;const tm=document.createElement('time');tm.textContent=RYD(m.t||Date.now());
   li.append(who,p,tm);chatList.appendChild(li);while(chatList.children.length>250)chatList.firstChild.remove();chatList.scrollTop=chatList.scrollHeight;}
 const SPEAK=[['المستلم','recv'],['المصنّف','cls'],['مسؤول الجهات','ent'],['Angel','angel'],['Faisal','faisal'],['Isak','isak'],['Sara','sara'],['Torres','torres'],['Gerrard','gerrard'],['Vandaik','vandaik'],['Salah','salah'],['Aziz','aziz'],['Neves','neves']];
 function simChat(t,cls){if(LIVE)return;let from=null,to=null;
@@ -896,7 +897,7 @@ function simChat(t,cls){if(LIVE)return;let from=null,to=null;
   const m=t.match(/^(?:قائد |ملخص )(.+?) /);if(!from&&m){const r=DEPTS.find(d=>t.includes(d.name));if(r)from=r.members[0].id;}
   chatAdd({from:from||'',to,text:t,kind:cls==='alert'?'return':cls==='ok'?'approve':(to?'handoff':''),t:Date.now()});}
 $('#chatTog').onclick=()=>{const c=$('#chat').classList.toggle('collapsed');$('#chatTog').textContent=c?'إظهار':'إخفاء';$('#chatTog').setAttribute('aria-expanded',!c);layoutUI();};
-function log(t,cls){simChat(t,cls);const li=document.createElement('li');if(cls)li.className=cls;const tm=document.createElement('time');const d=new Date();tm.textContent=d.toTimeString().slice(0,5);const sp=document.createElement('span');sp.textContent=t;li.append(tm,sp);logEl.prepend(li);while(logEl.children.length>60)logEl.lastChild.remove();}
+function log(t,cls){simChat(t,cls);const li=document.createElement('li');if(cls)li.className=cls;const tm=document.createElement('time');tm.textContent=RYD(Date.now());const sp=document.createElement('span');sp.textContent=t;li.append(tm,sp);logEl.prepend(li);while(logEl.children.length>60)logEl.lastChild.remove();}
 const stepsEl=$('#steps');
 STAGES.forEach(([who,what],i)=>{const d=document.createElement('div');d.className='st';d.innerHTML=`<i>${i+1}</i><b></b><small></small>`;d.querySelector('b').textContent=what;d.querySelector('small').textContent=who;stepsEl.appendChild(d);});
 function setStage(i,note){curStage=i;[...stepsEl.children].forEach((c,k)=>{c.classList.toggle('on',k===i);c.classList.toggle('done',k<i);});
@@ -1104,7 +1105,7 @@ const TOD={
   eve:{bg:'radial-gradient(ellipse at 55% 45%,#2a1d2e 0%,#0c0a12 72%)',hemi:[0xffd2b0,.5],ground:0x3a2420,sun:[0xff9a4d,.62],amb:.12,lamp:.55,screen:.8},
   night:{bg:'radial-gradient(ellipse at 55% 45%,#0e1626 0%,#05080d 72%)',hemi:[0x7d8fb8,.26],ground:0x1a1a24,sun:[0x9fb4ff,.22],amb:.08,lamp:1.1,screen:1.1},
 };
-function todKey(){if(tod!=='now')return tod;const h=new Date().getHours();return h>=6&&h<16?'day':h>=16&&h<19?'eve':'night';}
+function todKey(){if(tod!=='now')return tod;const h=RYH()%24;return h>=6&&h<16?'day':h>=16&&h<19?'eve':'night';}
 let lastTodKey=null;
 function applyTod(){const k=todKey();if(k===lastTodKey)return;lastTodKey=k;const T=TOD[k];
   stage.style.setProperty('--sky',T.bg);hemi.color.setHex(T.hemi[0]);hemi.intensity=T.hemi[1];hemi.groundColor.setHex(T.ground);amb.intensity=T.amb;
@@ -1159,7 +1160,7 @@ function frame(now){
     a.el.style.display='';a.el.classList.toggle('small',view===null&&(a.statusKind==='rest'||a.statusKind==='idle'||a.statusKind==='wait'));
     a.el.style.transform=`translate(${(v3.x*.5+.5)*W}px,${(-v3.y*.5+.5)*H}px) translate(-50%,-100%)`;});
   if((rosterTick+=rdt)>.5){rosterTick=0;renderRoster();updateNavCounts();}
-  if((clockTick+=rdt)>1){clockTick=0;$('#clock').textContent=new Date().toTimeString().slice(0,5);applyTod();}
+  if((clockTick+=rdt)>1){clockTick=0;$('#clock').textContent=RYD(Date.now());applyTod();}
   requestAnimationFrame(frame);
 }
 $('#loading').hidden=true;
